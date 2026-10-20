@@ -30,13 +30,15 @@ This policy does **not** restrict standard Spanish grammar. On the contrary, all
 3. **Ornamental Punctuation:**
    - Repeated punctuation for emphasis (such as `!!!`, `???`, `....`).
    - Trailing ornamental dashes or tildes at the end of sentences.
-4. **List Nesting Threshold:**
-   - **Maximum 2 Levels of Nesting:** Standard Markdown lists are permitted up to 2 levels of indentation:
+4. **List Nesting & Tabular Structuring:**
+   - **Prioritize Tables over Nested Lists:** When presenting structured data, comparative evaluations, component attributes, or items with multiple properties, prioritize Markdown tables over nested lists whenever a table improves readability and scannability.
+   - **Permitted List Scope:** Retain bulleted or numbered lists for simple single-level enumerations, sequential step-by-step instructions, or narrative items that do not fit a tabular model.
+   - **Maximum 2 Levels of Nesting:** When lists are necessary, never exceed 2 levels of indentation:
      ```markdown
      - Primary concept
        - Secondary detail or attribute
      ```
-   - **Deeper Hierarchies ($\ge 3$ levels):** If information requires 3 or more hierarchical levels, do not nest lists further. Organize the content using structured subheadings (`###`), definition lists, or concise Markdown tables.
+   - **Deeper Hierarchies ($\ge 3$ levels):** If information requires 3 or more hierarchical levels, do not nest lists further; reorganize the content into Markdown tables or structured subheadings (`###`).
 
 ---
 
@@ -70,4 +72,4 @@ When writing or reviewing any document, follow this 3-step verification:
 
 1. **Step 1 (Emoji & Ornament Scrub):** Search the text for Unicode emojis or decorative dividers. Strip them or replace them with standard Markdown headers or GitHub alerts.
 2. **Step 2 (Spanish Orthography Check):** If the text is in Spanish, verify that all accent-bearing words are properly accented (e.g. *análisis*, *código*, *información*, *está*, *metodología*) and questions open with `¿`.
-3. **Step 3 (Nesting Audit):** Inspect bulleted lists. If any list item contains sub-sub-bullets (3+ levels), refactor that section into a Markdown table or distinct subheadings.
+3. **Step 3 (Nesting & Structure Audit):** Inspect bulleted lists. If the content presents comparisons, entity attributes, or reaches 3+ indentation levels, refactor that section into a clear Markdown table or structured subheadings.
