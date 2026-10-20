@@ -107,6 +107,6 @@ A continuación se comparan cuantitativamente los dos escenarios de gestión:
 
 El informe técnico de evaluación multidimensional fue formalizado y publicado por el equipo de ingeniería como comentario estructurado en el issue correspondiente:
 
-![Evidencia 2: Informe Técnico de Evaluación Multidimensional de Impacto en GitHub](evidencias/02_analisis_impacto_cr001.png)
+![Evidencia 2: Informe Técnico de Evaluación Multidimensional de Impacto en GitHub](evidencias/issue_cambio_fase_2.png)
 
-> **Descripción de la Evidencia 2:** Captura de pantalla real del [comentario #6296934968 en el Issue #23](https://github.com/jorghee/inti-rag/issues/23#issuecomment-6296934968). Muestra la actualización del estado a `status:impact-analysis`, el análisis cuantitativo por las cinco dimensiones de ingeniería, la matriz de comparación entre el escenario base y el escenario con cambio, y la recomendación unánime del equipo de emitir un dictamen de rechazo categórico con activación de vetos.
+> **Descripción de la Evidencia 2:** Captura de pantalla del primer comentario en el [Issue #23 (Fase 2)](https://github.com/jorghee/inti-rag/issues/23#issuecomment-6296934968). Muestra la formalización del *Informe Técnico de Evaluación Multidimensional de Impacto*, el desglose analítico en alcance (18 SP), cronograma (62 horas de desarrollo sobre la capacidad de 64h), costos de scraping, recursos y riesgos, y la recomendación fundamentada de emitir un dictamen de rechazo categórico.

@@ -101,8 +101,18 @@ Para cerrar el ciclo de vida del cambio y preservar la integridad de la gestión
 
 ## 6. Evidencia Digital del Cierre y la Resolución en GitHub
 
-La resolución oficial del CCB y el cierre formal del issue quedaron registrados en el repositorio:
+La resolución oficial del CCB y el cierre formal del issue quedaron registrados en el repositorio institucional mediante dos evidencias complementarias:
 
-![Evidencia 3: Acta de Resolución del CCB y Cierre del Issue en GitHub](evidencias/03_resolucion_ccb_rechazo.png)
+### 6.1. Evidencia del Acta de Resolución y Registro de Votación (Fase 3)
 
-> **Descripción de la Evidencia 3:** Captura de pantalla real del [comentario #6296947784 y cierre del Issue #23](https://github.com/jorghee/inti-rag/issues/23#issuecomment-6296947784). Demuestra la formalización del acta numerada `ACTA-CCB-2026-001`, el registro del cuádruple veto, el dictamen de rechazo categórico con su fundamentación detallada, la asignación de la etiqueta `status:rejected` y el cierre definitivo del requerimiento bajo la causal *Closed as not planned*.
+![Evidencia 3: Acta de Resolución del CCB y Registro Nominal de Votación](evidencias/issue_cambio_fase_3.png)
+
+> **Descripción de la Evidencia 3:** Captura de pantalla del segundo comentario en el [Issue #23 (Fase 3)](https://github.com/jorghee/inti-rag/issues/23#issuecomment-6296947784). Demuestra la formalización del acta numerada `ACTA-CCB-2026-001`, la verificación del quórum reglamentario del 100% (4 de 4 integrantes presentes), el resumen de la deliberación colegiada y el registro nominal de votación unánime con la activación explícita del cuádruple veto (Técnico, Funcional, de Proceso y de Calidad).
+
+---
+
+### 6.2. Evidencia del Cierre Definitivo en el Listado de Issues (Fase 4)
+
+![Evidencia 4: Cierre Formal de la Solicitud CR-001 en el Listado de Issues de GitHub](evidencias/issue_cerrada.png)
+
+> **Descripción de la Evidencia 4:** Captura de pantalla del listado de *Issues* cerrados (`is:issue state:closed`) en el repositorio `jorghee/inti-rag`. Evidencia el cierre definitivo de la solicitud [CR-001] (Issue #23) bajo la causal oficial *Closed as not planned* (icono de círculo tachado), portando las etiquetas `type: change-request`, `change:major` y `status:rejected`, ratificando que el requerimiento fue desestimado formalmente sin alterar las líneas base del proyecto.

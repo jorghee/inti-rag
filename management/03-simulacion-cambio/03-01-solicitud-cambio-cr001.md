@@ -64,6 +64,6 @@ Al satisfacer el 100% de los requisitos formales de entrada, la solicitud fue de
 
 Inmediatamente después de su registro formal mediante el formulario declarativo de GitHub Issues, se capturó la evidencia digital del estado inicial de la solicitud:
 
-![Evidencia 1: Registro Inicial de la Solicitud de Cambio CR-001 en GitHub](evidencias/01_solicitud_cr001_registro_inicial.png)
+![Evidencia 1: Registro Inicial de la Solicitud de Cambio CR-001 en GitHub](evidencias/descripcion_issue_cambio.png)
 
-> **Descripción de la Evidencia 1:** Captura de pantalla real de la apertura formal del [Issue #23](https://github.com/jorghee/inti-rag/issues/23) en el repositorio institucional `jorghee/inti-rag`. La evidencia demuestra la adhesión estricta a la plantilla tipada `.github/ISSUE_TEMPLATE/change_request.yml`, la asignación de las etiquetas tipológicas oficiales `type: change-request` y `change:major`, y el desglose estructurado de la necesidad, los componentes afectados y los supuestos preliminares de triple restricción antes de la intervención de los evaluadores técnicos.
+> **Descripción de la Evidencia 1:** Captura de pantalla del [Issue #23](https://github.com/jorghee/inti-rag/issues/23) en el repositorio institucional `jorghee/inti-rag`. La evidencia demuestra el registro inicial y estructurado de la solicitud mediante la plantilla `change_request.yml`, la justificación de negocio, el detalle técnico de los componentes afectados, las etiquetas tipológicas oficiales `type: change-request` y `change:major`, y la formulación de los supuestos iniciales de triple restricción.
