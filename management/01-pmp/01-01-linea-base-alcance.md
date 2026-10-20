@@ -45,11 +45,11 @@ $$\text{Alcance MVP} = \text{HU-05 (5 SP)} + \text{HU-03 (13 SP)} + \text{HU-01 
 ```mermaid
 flowchart TD
     subgraph MVP["Producto Mínimo Viable (MVP) — 39 Story Points"]
-        HU05["HU-05: Autenticación Institucional (5 SP)<br/>Restricción @unsa.edu.pe + JWT"]
-        HU03["HU-03: Ingesta SPIJ Código Civil (13 SP)<br/>Extracción 2,122 artículos + Chunker"]
-        HU01["HU-01: Motor RAG Semántico (8 SP)<br/>LlamaIndex + Groq Llama 3.3"]
-        HU02["HU-02: Citas Trazables Hipervinculadas (8 SP)<br/>Grounding legal sin alucinación"]
-        HU08["HU-08: Interfaz Web Móvil Responsiva (5 SP)<br/>HTML5 / CSS / Streaming SSE"]
+        HU05["HU-05: Autenticación Institucional (5 SP)\nRestricción @unsa.edu.pe + JWT"]
+        HU03["HU-03: Ingesta SPIJ Código Civil (13 SP)\nExtracción 2,122 artículos + Chunker"]
+        HU01["HU-01: Motor RAG Semántico (8 SP)\nLlamaIndex + Groq Llama 3.3"]
+        HU02["HU-02: Citas Trazables Hipervinculadas (8 SP)\nGrounding legal sin alucinación"]
+        HU08["HU-08: Interfaz Web Móvil Responsiva (5 SP)\nHTML5 / CSS / Streaming SSE"]
     end
 
     HU05 --> HU03
@@ -75,7 +75,7 @@ La EDT descompone el alcance del MVP en paquetes de trabajo y tareas técnicas a
 flowchart TD
     PROJ["1. Proyecto Inti RAG"] --> PKG1["1.1 Seguridad y Acceso (HU-05)"]
     PROJ --> PKG2["1.2 Ingestión Normativa (HU-03)"]
-    PROJ --> PKG3["1.3 Motor RAG (HU-01 & HU-02)"]
+    PROJ --> PKG3["1.3 Motor RAG (HU-01 y HU-02)"]
     PROJ --> PKG4["1.4 Experiencia de Usuario (HU-08)"]
 
     PKG1 --> T051["1.1.1 Schema Supabase y RLS (TASK-05.1)"]
@@ -89,14 +89,14 @@ flowchart TD
     PKG2 --> T033["1.2.3 Chunker Jerárquico (TASK-03.3)"]
     PKG2 --> T034["1.2.4 Test Cobertura 2,122 Arts (TASK-03.4)"]
 
-    PKG3 --> T011["1.3.1 Pipeline LlamaIndex + pgvector"]
-    PKG3 --> T012["1.3.2 Conector Groq Llama 3.3 API"]
-    PKG3 --> T021["1.3.3 Parser de Citas y URLs SPIJ"]
-    PKG3 --> T022["1.3.4 Validación de Grounding Legal"]
+    PKG3 --> T011["1.3.1 Pipeline LlamaIndex + pgvector (TASK-01.1)"]
+    PKG3 --> T012["1.3.2 Conector Groq Llama 3.3 API (TASK-01.2)"]
+    PKG3 --> T021["1.3.3 Parser de Citas y URLs SPIJ (TASK-02.1)"]
+    PKG3 --> T022["1.3.4 Validación de Grounding Legal (TASK-02.2)"]
 
-    PKG4 --> T081["1.4.1 Layout Web Mobile-First"]
-    PKG4 --> T082["1.4.2 Lector de Streaming SSE"]
-    PKG4 --> T083["1.4.3 Popovers de Citas Normativas"]
+    PKG4 --> T081["1.4.1 Layout Web Mobile-First (TASK-08.1)"]
+    PKG4 --> T082["1.4.2 Lector de Streaming SSE (TASK-08.2)"]
+    PKG4 --> T083["1.4.3 Popovers de Citas Normativas (TASK-08.3)"]
 ```
 
 ---

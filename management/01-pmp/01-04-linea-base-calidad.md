@@ -29,11 +29,14 @@ flowchart TD
 
         subgraph RAG["2. Calidad del Motor RAG"]
             R1["Similitud Coseno pgvector >= 0.75"]
-            R2["Tasa de Alucinación Legal < 5%"]
+            R2["Tasa de Alucinación Legal inferior a 5%"]
             R3["Citas Hipervinculadas al SPIJ: 100%"]
-            R4["Latencia de Respuesta <= 3.0 seg (SSE)"]
+            R4["Latencia de Respuesta <= 3.0 s (SSE)"]
         end
     end
+
+    classDef stdCard fill:#f9f9f9,stroke:#616161,stroke-width:1px,color:#111111;
+    class C1,C2,C3,C4,R1,R2,R3,R4 stdCard;
 ```
 
 ### 2.1. Métricas de Ingeniería de Software

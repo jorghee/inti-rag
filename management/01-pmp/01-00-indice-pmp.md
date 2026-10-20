@@ -15,18 +15,21 @@ Este documento integra las cinco líneas base esenciales de dirección, adaptada
 
 ```mermaid
 flowchart TD
-    PMP["Plan de Gestión del Proyecto (PMP)<br/>Inti Asistente Jurídico (PMBOK 7ma Ed.)"]
+    PMP["Plan de Gestión del Proyecto (PMP)\nInti Asistente Jurídico (PMBOK 7ma Ed.)"]
     
-    PMP --> B1["1. Línea Base del Alcance<br/>(39 SP MVP / 5 Must Have / WBS)"]
-    PMP --> B2["2. Línea Base del Cronograma<br/>(8 Semanas / 4 Sprints / 64h Capacidad)"]
-    PMP --> B3["3. Línea Base de Costos<br/>(Presupuesto S/. 88.18 / Free Tier)"]
-    PMP --> B4["4. Línea Base de Calidad<br/>(RAG Similitud >= 0.75 / Alucinación < 5%)"]
-    PMP --> B5["5. Plan de Gestión de Riesgos<br/>(Matriz 5x5 / Failovers Técnicos)"]
+    subgraph Baselines["Líneas Base de Dirección y Control Integrado"]
+        B1["1. Línea Base del Alcance\n(39 SP MVP / 5 Must Have / WBS)"]
+        B2["2. Línea Base del Cronograma\n(8 Semanas / 4 Sprints / 64h Capacidad)"]
+        B3["3. Línea Base de Costos\n(Presupuesto S/. 88.18 / Free Tier)"]
+        B4["4. Línea Base de Calidad\n(RAG Similitud >= 0.75 / Alucinación inferior a 5%)"]
+        B5["5. Plan de Gestión de Riesgos\n(Matriz 5x5 / Failovers Técnicos)"]
+    end
 
-    B1 --- B2
-    B2 --- B3
-    B3 --- B4
-    B4 --- B5
+    PMP --> B1
+    PMP --> B2
+    PMP --> B3
+    PMP --> B4
+    PMP --> B5
 ```
 
 ---

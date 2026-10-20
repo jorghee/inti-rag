@@ -21,19 +21,30 @@ $$\text{Nivel de Riesgo (Severidad)} = \text{Probabilidad (1 a 5)} \times \text{
 - **Crítico / Muy Alto (15--25):** Amenaza existencial para el proyecto; requiere salvaguarda arquitectónica inmediata.
 
 ```mermaid
-quadrantChart
-    title Matriz de Probabilidad e Impacto (5x5)
-    x-axis Impacto Bajo --> Impacto Critico
-    y-axis Probabilidad Baja --> Probabilidad Alta
-    quadrant-1 Riesgos Criticos (Atencion Inmediata)
-    quadrant-2 Riesgos de Alta Probabilidad
-    quadrant-3 Riesgos Aceptables
-    quadrant-4 Riesgos de Alto Impacto
-    "R-05: Scope Creep": [0.85, 0.80]
-    "R-03: Rate Limits Groq": [0.65, 0.75]
-    "R-01: Bloqueo Scraper SPIJ": [0.75, 0.60]
-    "R-02: Alucinacion Juridica": [0.95, 0.40]
-    "R-04: Acceso no Institucional": [0.70, 0.35]
+flowchart TD
+    subgraph Matriz["Matriz de Probabilidad e Impacto (5x5) — Riesgos del Proyecto Inti"]
+        subgraph Critico["Severidad Crítica (15 a 25) — Mitigación Preventiva Obligatoria"]
+            R05["R-05: Corrupción del Alcance (Scope Creep)\nProbabilidad: 4 | Impacto: 4 | Severidad: 16 (Crítico)\nMitigación: Control Integrado de Cambios estricto + CCB"]
+        end
+
+        subgraph Alto["Severidad Alta (10 a 14) — Salvaguardas Técnicas Activas"]
+            R01["R-01: Bloqueo del Scraper SPIJ\nProbabilidad: 3 | Impacto: 4 | Severidad: 12 (Alto)\nMitigación: Backoff exponencial + Snapshot local"]
+            R03["R-03: Agotamiento Cuota Groq Cloud API\nProbabilidad: 4 | Impacto: 3 | Severidad: 12 (Alto)\nMitigación: Failover automático a OpenRouter con reserva"]
+            R02["R-02: Alucinación en Citas Jurídicas\nProbabilidad: 2 | Impacto: 5 | Severidad: 10 (Alto)\nMitigación: Similitud pgvector >= 0.75 + Validador estricto"]
+        end
+
+        subgraph Moderado["Severidad Moderada (6 a 9) — Monitoreo y Contingencia Pasiva"]
+            R04["R-04: Registro no Institucional\nProbabilidad: 2 | Impacto: 4 | Severidad: 8 (Moderado)\nMitigación: Validación dual regex frontend + GoTrue backend"]
+        end
+    end
+
+    classDef criticoStyle fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#111111;
+    classDef altoStyle fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#111111;
+    classDef moderadoStyle fill:#fffde7,stroke:#fbc02d,stroke-width:2px,color:#111111;
+
+    class R05 criticoStyle;
+    class R01,R03,R02 altoStyle;
+    class R04 moderadoStyle;
 ```
 
 ---

@@ -30,13 +30,13 @@ El horizonte de 8 semanas se organiza en **4 Sprints quincenales** de 10 días l
 
 ```mermaid
 flowchart LR
-    S1["Sprint 1 (Sem. 1-2)<br/>M1: Infraestructura y Auth<br/>Compromiso: 10 SP"] --> S2["Sprint 2 (Sem. 3-4)<br/>M2: Ingesta SPIJ y pgvector<br/>Compromiso: 11 SP"]
-    S2 --> S3["Sprint 3 (Sem. 5-6)<br/>M3: Motor RAG y Web UI<br/>Compromiso: 13 SP"]
-    S3 --> S4["Sprint 4 (Sem. 7-8)<br/>M4: Citas y Validación MVP<br/>Compromiso: 16 SP"]
+    S1["Sprint 1 (Sem. 1-2)\nM1: Infraestructura y Auth\nCompromiso: 10 SP"] --> S2["Sprint 2 (Sem. 3-4)\nM2: Ingesta SPIJ y pgvector\nCompromiso: 11 SP"]
+    S2 --> S3["Sprint 3 (Sem. 5-6)\nM3: Motor RAG y Web UI\nCompromiso: 13 SP"]
+    S3 --> S4["Sprint 4 (Sem. 7-8)\nM4: Citas y Validación MVP\nCompromiso: 16 SP"]
 
     subgraph PostMVP["Fase 2: Evolutiva"]
-        S5["Sprint 5 (Sem. 9-10)<br/>M5: Corpus TC y Filtros"]
-        S6["Sprint 6 (Sem. 11-12)<br/>M6: QA Final y Cierre"]
+        S5["Sprint 5 (Sem. 9-10)\nM5: Corpus TC y Filtros"]
+        S6["Sprint 6 (Sem. 11-12)\nM6: QA Final y Cierre"]
     end
 
     S4 -.->|Cierre del MVP| S5
@@ -60,10 +60,15 @@ El análisis del Método de la Ruta Crítica (*Critical Path Method* - CPM) dete
 
 ```mermaid
 flowchart TD
-    A["TASK-05.1: Esquema Supabase Auth (3h)"] --> B["TASK-05.2: Router JWT FastAPI (4h)"]
-    C["TASK-03.1: Scraper SPIJ httpx (6h)"] --> D["TASK-03.2: Limpieza HTML (3h)"]
-    D --> E["TASK-03.3: Chunker Jerárquico (5h)"]
-    E --> F["TASK-03.4: Test Cobertura 2,122 Arts (3h)"]
+    subgraph Secuencia1["Ruta Secundaria Auth (Holgura: 10h)"]
+        A["TASK-05.1: Esquema Supabase Auth (3h)"] --> B["TASK-05.2: Router JWT FastAPI (4h)"]
+    end
+
+    subgraph Secuencia2["Ruta Crítica Ingesta (Duración: 17h)"]
+        C["TASK-03.1: Scraper SPIJ httpx (6h)"] --> D["TASK-03.2: Limpieza HTML (3h)"]
+        D --> E["TASK-03.3: Chunker Jerárquico (5h)"]
+        E --> F["TASK-03.4: Test Cobertura 2,122 Arts (3h)"]
+    end
     
     B --> G["Indexación Vectorial pgvector (Sprint 2)"]
     F --> G
@@ -72,19 +77,14 @@ flowchart TD
     H --> I["Citas Hipervinculadas SPIJ (Sprint 4)"]
     I --> J["Validación Final de Aceptación MVP (Sprint 4)"]
 
-    style A fill:#ffcccc,stroke:#cc0000
-    style B fill:#ffcccc,stroke:#cc0000
-    style C fill:#ffcccc,stroke:#cc0000
-    style D fill:#ffcccc,stroke:#cc0000
-    style E fill:#ffcccc,stroke:#cc0000
-    style F fill:#ffcccc,stroke:#cc0000
-    style G fill:#ffcccc,stroke:#cc0000
-    style H fill:#ffcccc,stroke:#cc0000
-    style I fill:#ffcccc,stroke:#cc0000
-    style J fill:#ffcccc,stroke:#cc0000
+    classDef criticalPath fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#111111;
+    classDef standardPath fill:#f5f5f5,stroke:#757575,stroke-width:1px,color:#111111;
+
+    class C,D,E,F,G,H,I,J criticalPath;
+    class A,B standardPath;
 ```
 
-*Las actividades resaltadas en rojo conforman la **Ruta Crítica**. Cualquier retraso en la ingesta del SPIJ (`TASK-03.1` a `TASK-03.3`) o en la indexación vectorial impacta directamente en la puesta en marcha del motor RAG en el Sprint 3.*
+*Las actividades resaltadas en rojo (`TASK-03.1` a `TASK-03.4`, indexación y validación) conforman la **Ruta Crítica** (17h frente a 7h de autenticación). Cualquier retraso en la ingesta del SPIJ o en la indexación vectorial impacta directamente en la puesta en marcha del motor RAG en el Sprint 3.*
 
 ---
 

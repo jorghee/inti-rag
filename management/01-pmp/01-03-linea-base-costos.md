@@ -30,7 +30,7 @@ El capital de trabajo monetario asciende exactamente a **S/. 88.18**, distribuid
 *Tipo de cambio de referencia: $1.00 USD = S/. 3.75 PEN.*
 
 ```mermaid
-pie title Distribución del Presupuesto Operativo (S/. 88.18)
+pie title Distribución del Presupuesto Operativo (PEN 88.18)
     "Dominio y Certificado SSL (S/. 50.00)" : 50.00
     "Reserva de Contingencia (S/. 30.00)" : 30.00
     "Inferencia OpenRouter Backup (S/. 6.64)" : 6.64
