@@ -1,81 +1,81 @@
-# Módulo Motor RAG y Recuperación Semántica
+# RAG Engine and Semantic Retrieval Module
 
-> **Subsistema:** Pipeline de Recuperación y Generación Aumentada  
-> **Historia de Usuario:** `HU-01` (Consulta en Lenguaje Natural con Respuesta Contextualizada)  
-> **Decisiones de Arquitectura:** [`../architecture/decisions.md#adr-001`](../architecture/decisions.md#adr-001-unified-relational-and-vector-storage-with-supabase-postgresql--pgvector) y [`../architecture/decisions.md#adr-003`](../architecture/decisions.md#adr-003-multi-tiered-llm-inference-engine-groq-llama-33-with-openrouter-contingency)
-
----
-
-## 1. Propósito y Alcance
-
-El **Motor RAG** es el núcleo analítico de Inti. Su función es transformar preguntas en lenguaje natural formuladas por estudiantes o docentes en consultas semánticas, recuperar los fragmentos pertinentes del Código Civil peruano y sintetizar una respuesta jurídica precisa, fundamentada y libre de alucinaciones.
+> **Subsystem:** Retrieval-Augmented Generation Pipeline  
+> **User Story:** `HU-01` (Natural Language Legal Query with Contextualized Answer)  
+> **Architecture Decisions:** [`../architecture/decisions.md#adr-001`](../architecture/decisions.md#adr-001-unified-relational-and-vector-storage-with-supabase-postgresql--pgvector) and [`../architecture/decisions.md#adr-003`](../architecture/decisions.md#adr-003-multi-tiered-llm-inference-engine-groq-llama-33-with-openrouter-contingency)
 
 ---
 
-## 2. Arquitectura del Pipeline RAG
+## 1. Purpose and Scope
+
+The **RAG Engine** is the analytical core of Inti. It transforms natural language questions submitted by law students or faculty into semantic queries, retrieves pertinent articles from the Peruvian Civil Code via vector similarity, and synthesizes a precise, well-founded, and hallucination-free legal answer.
+
+---
+
+## 2. RAG Pipeline Architecture
 
 ```mermaid
 flowchart TD
-    UserQuery[/"Pregunta en Lenguaje Natural"/] --> Embedding["Vectorización de Consulta\n(OpenAI text-embedding-3-small)"]
-    Embedding --> VectorQuery["Búsqueda Vectorial Coseno (<=>)\nen Supabase pgvector"]
+    UserQuery[/"Natural Language Question"/] --> Embedding["Query Vectorization\n(OpenAI text-embedding-3-small)"]
+    Embedding --> VectorQuery["Cosine Vector Search (<=>)\nin Supabase pgvector"]
     
-    VectorQuery --> ThresholdCheck{"¿Similitud máxima\n>= 0.75?"}
+    VectorQuery --> ThresholdCheck{"Max similarity\n>= 0.75?"}
     
-    ThresholdCheck -->|No| OutOfScopeResponse["Retornar Aviso Fuera de Alcance:\n'La consulta formulada no se encuentra\nrespaldada en el corpus legal indexado.'"]
-    ThresholdCheck -->|Sí| SelectTopK["Seleccionar Top-5 Fragmentos\n(Artículos, Metadatos y URLs)"]
+    ThresholdCheck -->|No| OutOfScopeResponse["Return Out-of-Scope Notice:\n'The submitted query is not\ngrounded in the indexed legal corpus.'"]
+    ThresholdCheck -->|Yes| SelectTopK["Select Top-5 Chunks\n(Articles, Metadata, and URLs)"]
     
-    SelectTopK --> PromptBuilder["Ensamblado de Prompt Aumentado\n(System Guardrails + Contexto Legal + Pregunta)"]
-    PromptBuilder --> PrimaryInference["Inferencia Primaria:\nGroq Cloud (Llama 3.3 70B Versatile)"]
+    SelectTopK --> PromptBuilder["Assemble Augmented Prompt\n(System Guardrails + Legal Context + Question)"]
+    PromptBuilder --> PrimaryInference["Primary Inference:\nGroq Cloud (Llama 3.3 70B Versatile)"]
     
-    PrimaryInference --> CheckInference{"¿Respuesta exitosa de Groq?"}
-    CheckInference -->|Falla / Rate Limit 429| FallbackInference["Inferencia de Contingencia:\nOpenRouter (DeepSeek-V4.1 / GPT-6 Luna)"]
-    CheckInference -->|Éxito| StreamSSE["Streaming de Tokens vía SSE\n(text/event-stream)"]
+    PrimaryInference --> CheckInference{"Successful Groq Response?"}
+    CheckInference -->|Failure / Rate Limit 429| FallbackInference["Contingency Inference:\nOpenRouter (DeepSeek-V4.1 / GPT-6 Luna)"]
+    CheckInference -->|Success| StreamSSE["Token Streaming via SSE\n(text/event-stream)"]
     FallbackInference --> StreamSSE
     
-    StreamSSE --> WebClient[/"Visualización en Tiempo Real\nen la Interfaz Web"/]
+    StreamSSE --> WebClient[/"Real-Time Rendering\non Web Interface"/]
 ```
 
 ---
 
-## 3. Especificación del Proceso de Recuperación
+## 3. Retrieval Process Specification
 
-### 3.1. Umbral de Similitud Coseno ($\ge 0.75$)
-Para evitar alucinaciones generadas por la recuperación forzada de artículos no relacionados, el sistema aplica un filtro rígido de similitud coseno:
-$$\text{Similitud} = 1 - (\vec{u} \cdot \vec{v})$$
-- Si ningún fragmento alcanza el umbral de **0.75**, la consulta se considera fuera de alcance y el LLM no es invocado para especular, respondiendo inmediatamente con un mensaje de declinación estándar.
+### 3.1. Cosine Similarity Cutoff ($\ge 0.75$)
+To prevent hallucinations triggered by forcing generation over ungrounded chunks, the pipeline enforces a strict cosine similarity threshold:
+$$\text{Similarity} = 1 - (\vec{u} \cdot \vec{v})$$
+- If no indexed chunk achieves a similarity score of **$0.75$ or higher**, the query is classified as out of scope. The LLM is prevented from generating speculative output, returning an immediate refusal notice.
 
-### 3.2. Parámetro Top-K
-Se recuperan como máximo **5 artículos** normativos por consulta para mantener el tamaño del contexto dentro del límite presupuestario y evitar diluir la atención del modelo.
+### 3.2. Top-K Parameter
+The retriever selects at most **5 statutory chunks** per query. This balances comprehensive legal context against prompt budget limits and model attention dispersion.
 
 ---
 
-## 4. Ensamblado del Prompt y Guardrails del Sistema
+## 4. Prompt Assembly and System Guardrails
 
-El prompt inyectado al modelo de lenguaje impone restricciones de fundamentación legal estricta:
+The augmented prompt injected into the LLM enforces strict statutory grounding:
 
 ```text
-Eres "Inti", el asistente jurídico inteligente de la Facultad de Derecho de la UNSA.
-Tu función es responder consultas legales basándote EXCLUSIVAMENTE en los fragmentos del Código Civil peruano provistos a continuación.
+You are "Inti", the specialized legal AI assistant for the UNSA Faculty of Law.
+Your role is to answer legal queries based EXCLUSIVELY on the Peruvian Civil Code excerpts provided below.
 
-REGLAS INVARIABLES:
-1. Responde únicamente con información fundamentada en los fragmentos legales adjuntos.
-2. Cada afirmación o regla jurídica que expliques debe incluir inmediatamente su cita oficial en formato [Código Civil, Art. X] con el enlace correspondiente.
-3. Si los fragmentos no contienen información suficiente para absolver la consulta con certeza jurídica, responde textualmente: "La información disponible en el corpus oficial indexado no permite responder a esta consulta con certeza jurídica."
-4. Queda terminantemente prohibido especular, citar jurisprudencia no provista o inventar artículos.
-5. Mantén un tono formal, académico y pedagógico, adecuado para estudiantes de Derecho.
+STRICT INVARIANTS:
+1. Ground your answer solely on the provided statutory excerpts.
+2. Every legal claim or rule you state must be immediately followed by its official citation formatted as [Código Civil, Art. X] with the corresponding SPIJ URL.
+3. If the retrieved chunks do not provide sufficient statutory foundation to answer the question with legal certainty, state verbatim: "The information available in the indexed official corpus is insufficient to answer this query with legal certainty."
+4. Never speculate, invent non-existent articles, or cite unprovided jurisprudence.
+5. Maintain a formal, academic, and pedagogical tone appropriate for university law students.
 
-FRAGMENTOS LEGALES RECUPERADOS:
+RETRIEVED STATUTORY EXCERPTS:
 {retrieved_context}
 
-PREGUNTA DEL ESTUDIANTE:
+STUDENT QUERY:
 {user_query}
 ```
 
 ---
 
-## 5. Streaming de Respuestas (Server-Sent Events)
+## 5. Streaming Responses via Server-Sent Events (SSE)
 
-El endpoint de consulta (`POST /api/v1/query/stream`) utiliza el protocolo **Server-Sent Events (SSE)** para enviar tokens de texto conforme son generados:
+The streaming endpoint (`POST /api/v1/query/stream`) utilizes **Server-Sent Events (SSE)** to stream generated tokens to the client with minimal Time-To-First-Token (TTFT):
 
 ```python
 from fastapi import APIRouter, Depends

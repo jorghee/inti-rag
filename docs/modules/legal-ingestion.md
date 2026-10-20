@@ -1,50 +1,50 @@
-# Módulo de Ingesta Legal y Chunking Jerárquico
+# Legal Ingestion and Hierarchical Chunking Module
 
-> **Subsistema:** Pipeline de Ingesta y Vectorización de Normativa  
-> **Historia de Usuario:** `HU-03` (Ingesta Automatizada de Normativa desde SPIJ)  
-> **Decisión de Arquitectura:** [`../architecture/decisions.md#adr-002`](../architecture/decisions.md#adr-002-hierarchical-chunking-pipeline-for-peruvian-codified-norms)
-
----
-
-## 1. Propósito y Alcance
-
-El módulo de ingesta es responsable de extraer, limpiar, estructurar y vectorizar el Código Civil peruano (y posteriormente fuentes jurisprudenciales) desde el portal oficial del Sistema Peruano de Información Jurídica (SPIJ).
-
-Su diseño resuelve dos limitaciones clave del dominio legal:
-1. **Pérdida de contexto jurídico:** Los splitters genéricos de texto cortan párrafos por número de caracteres, fragmentando artículos y desvinculándolos de su Título o Libro.
-2. **Restricciones del servidor oficial:** SPIJ no dispone de API pública y bloquea ráfagas de tráfico, requiriendo un scraping controlado con pausas adaptativas.
+> **Subsystem:** Statutory Ingestion and Vectorization Pipeline  
+> **User Story:** `HU-03` (Automated Statutory Ingestion from SPIJ)  
+> **Architecture Decision:** [`../architecture/decisions.md#adr-002`](../architecture/decisions.md#adr-002-hierarchical-chunking-pipeline-for-peruvian-codified-norms)
 
 ---
 
-## 2. Flujo del Pipeline de Ingesta
+## 1. Purpose and Scope
+
+The legal ingestion module extracts, sanitizes, structures, and vectorizes the Peruvian Civil Code (and subsequent binding jurisprudence) directly from the official portal of the Sistema Peruano de Información Jurídica (SPIJ).
+
+Its design resolves two critical legal domain challenges:
+1. **Loss of Statutory Context:** Generic character-count splitters fragment paragraphs arbitrarily, separating articles from their parent Chapter, Title, or Book.
+2. **Server Access Controls:** The SPIJ portal lacks a public REST API and enforces strict rate limits against traffic bursts, requiring adaptive rate limiting with pauses.
+
+---
+
+## 2. Ingestion Pipeline Flow
 
 ```mermaid
 flowchart TD
-    Trigger(["Disparo del Pipeline\n(CLI o Tarea Programada)"]) --> FetchRaw["Descarga HTTP Asíncrona (httpx)\ncon User-Agent institucional"]
-    FetchRaw --> CheckStatus{"¿Respuesta 200 OK?"}
+    Trigger(["Pipeline Trigger\n(CLI or Scheduled Task)"]) --> FetchRaw["Async HTTP Download (httpx)\nwith institutional User-Agent"]
+    FetchRaw --> CheckStatus{"200 OK Response?"}
 
-    CheckStatus -->|Error 429 / 503| Backoff["Espera Exponencial\n(1.5s * 2^intento)"]
+    CheckStatus -->|Error 429 / 503| Backoff["Exponential Backoff\n(1.5s * 2^attempt)"]
     Backoff --> FetchRaw
-    CheckStatus -->|Éxito| CleanHTML["Limpieza de HTML / Normalización UTF-8\n(Eliminación de scripts, estilos y ruido)"]
+    CheckStatus -->|Success| CleanHTML["HTML Sanitization / UTF-8 Normalization\n(Strip scripts, styles, and boilerplate)"]
 
-    CleanHTML --> ParseHierarchy["Parser Jerárquico Sintáctico\nDetecta: Libro > Título > Capítulo"]
-    ParseHierarchy --> ExtractArticles["Extracción Atómica de Artículos\nRegex: ^Artículo [0-9]+[.-]"]
+    CleanHTML --> ParseHierarchy["Syntactic Hierarchical Parser\nDetects: Book > Title > Chapter"]
+    ParseHierarchy --> ExtractArticles["Atomic Article Extraction\nRegex: ^Artículo [0-9]+[.-]"]
     
-    ExtractArticles --> AssembleChunk["Construcción de Metadatos de Fragmento\n(hierarchy, article_number, official_url)"]
-    AssembleChunk --> Embeddings["Generación de Embeddings 1536d\n(OpenAI text-embedding-3-small)"]
+    ExtractArticles --> AssembleChunk["Assemble Chunk Metadata\n(hierarchy, article_number, official_url)"]
+    AssembleChunk --> Embeddings["Generate 1536d Embeddings\n(OpenAI text-embedding-3-small)"]
 
-    Embeddings --> UpsertDB[("Inserción Idempotente en Supabase\nON CONFLICT (statute_code, article_number) DO UPDATE")]
-    UpsertDB --> VerifyCount{"¿Conteo total coincide\ncon articulado oficial?"}
+    Embeddings --> UpsertDB[("Idempotent Upsert into Supabase\nON CONFLICT (statute_code, article_number) DO UPDATE")]
+    UpsertDB --> VerifyCount{"Total count matches\nofficial article count?"}
 
-    VerifyCount -->|Divergencia| AlertLog["Alerta en Log de Ingesta"]
-    VerifyCount -->|Conforme| Finish(["Ingesta Completada Exitosamente"])
+    VerifyCount -->|Discrepancy| AlertLog["Ingestion Log Alert"]
+    VerifyCount -->|Consistent| Finish(["Ingestion Completed Successfully"])
 ```
 
 ---
 
-## 3. Algoritmo de Segmentación Jerárquica (*Hierarchical Chunking*)
+## 3. Hierarchical Chunking Algorithm
 
-El parser no segmenta por longitud fija de tokens, sino por fronteras canónicas del articulado legal:
+The parser avoids fixed token chunking, slicing text strictly along canonical statutory boundaries:
 
 ```text
 [CÓDIGO CIVIL DE 1984]
@@ -55,7 +55,7 @@ El parser no segmenta por longitud fija de tokens, sino por fronteras canónicas
                      └── ARTÍCULO 1529: Definición del contrato de compraventa
 ```
 
-### Estructura del Fragmento Legal (JSON Payload)
+### Statutory Chunk Schema (JSON Payload)
 ```json
 {
   "statute_code": "CODIGO_CIVIL_1984",
@@ -71,22 +71,22 @@ El parser no segmenta por longitud fija de tokens, sino por fronteras canónicas
 }
 ```
 
-### Texto Compuesto para Inferencia y Vectorización
-Para que el modelo vectorial capture la semántica completa de la norma, el texto enviado a vectorización concatena la ruta jerárquica con el contenido del artículo:
+### Composite Text for Embedding and Retrieval
+To ensure the embedding vector captures complete semantic context, the string vectorized by `text-embedding-3-small` prepends the statutory hierarchy to the article body:
 
 ```text
-Norma: Código Civil de 1984
-Jerarquía: Libro VII: Fuentes de las Obligaciones > Título I: Compraventa
-Artículo 1529: Por la compraventa el vendedor se obliga a transferir la propiedad de un bien al comprador y este a pagar su precio en dinero.
+Norm: Código Civil de 1984
+Hierarchy: Libro VII: Fuentes de las Obligaciones > Título I: Compraventa
+Article 1529: Por la compraventa el vendedor se obliga a transferir la propiedad de un bien al comprador y este a pagar su precio en dinero.
 ```
 
 ---
 
-## 4. Estrategia de Descarga y Prevención de Bloqueos
+## 4. Scraping Strategy and Rate-Limit Safeguards
 
-- **Librería de red:** `httpx` asíncrono con timeouts explícitos de 30 segundos.
-- **Pausa obligatoria entre solicitudes:** Mínimo 1.5 segundos entre peticiones sucesivas.
-- **Backoff exponencial:** Si el servidor responde con código HTTP 429 (Too Many Requests) o 503, se aplica una pausa creciente:
-  $$\text{Pausa} = 1.5 \times 2^{\text{intento}} + \text{jitter aleatorio}$$
-- **Máximo de reintentos:** 3 intentos antes de abortar y registrar el fallo en el log de auditoría.
-- **Idempotencia:** La clave única `(statute_code, article_number)` en la tabla `legal_chunks` asegura que re-ejecutar el pipeline actualice los fragmentos existentes sin duplicar registros ni corromper el índice HNSW.
+- **Networking Library:** Asynchronous `httpx` with explicit 30-second timeouts.
+- **Mandatory Request Delay:** Minimum 1.5-second sleep interval between sequential HTTP calls.
+- **Exponential Backoff:** When receiving HTTP status codes 429 (Too Many Requests) or 503, the pipeline applies exponential backoff:
+  $$\text{Delay} = 1.5 \times 2^{\text{attempt}} + \text{random jitter}$$
+- **Retry Threshold:** Maximum 3 retry attempts before aborting execution and recording the incident in the audit log.
+- **Idempotency Guarantee:** The unique constraint `(statute_code, article_number)` in the `legal_chunks` table guarantees that re-running the ingestion pipeline updates existing records without duplicating vectors or corrupting the HNSW index.

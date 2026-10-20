@@ -1,17 +1,17 @@
-# Configuración y Variables de Entorno
+# Configuration and Environment Variables
 
-> **Sistema:** Inti - Asistente Jurídico Inteligente  
-> **Archivo de Configuración:** `.env` en la raíz del proyecto
+> **System:** Inti - Legal AI Assistant  
+> **Configuration File:** `.env` in repository root
 
 ---
 
-## 1. Plantilla de Variables de Entorno (`.env.example`)
+## 1. Environment Variable Template (`.env.example`)
 
-Cree un archivo `.env` en el directorio raíz de la aplicación copiando la siguiente plantilla:
+Create a `.env` file in the root directory by copying the following configuration template:
 
 ```bash
 # ==============================================================================
-# CONFIGURACIÓN GENERAL DE LA APLICACIÓN
+# GENERAL APPLICATION CONFIGURATION
 # ==============================================================================
 APP_ENV=development                    # development | staging | production
 APP_HOST=0.0.0.0
@@ -19,73 +19,73 @@ APP_PORT=8000
 DEBUG=True
 
 # ==============================================================================
-# POLÍTICA DE SEGURIDAD Y DOMINIO INSTITUCIONAL
+# SECURITY POLICY AND INSTITUTIONAL DOMAIN
 # ==============================================================================
 ALLOWED_EMAIL_DOMAIN=unsa.edu.pe
 CORS_ORIGINS=["http://localhost:3000", "http://localhost:8000", "https://inti.unsa.edu.pe"]
 
 # ==============================================================================
-# CREDENCIALES DE PERSISTENCIA (SUPABASE)
+# PERSISTENCE CREDENTIALS (SUPABASE)
 # ==============================================================================
-# URL del proyecto Supabase (disponible en Settings > API)
+# Supabase project URL (Settings > API)
 SUPABASE_URL=https://xyzcompany.supabase.co
 
-# Clave anónima pública (para operaciones con contexto de usuario y RLS)
+# Public anonymous key (used for client-scoped operations with RLS context)
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# Clave de servicio administrativa (exclusiva para tareas de ingesta del scraper)
+# Administrative service role key (restricted strictly to scraper ingestion tasks)
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# Secreto JWT para verificar firmas de tokens GoTrue en FastAPI
-SUPABASE_JWT_SECRET=tu-secreto-jwt-super-seguro-de-supabase
+# JWT secret key to verify GoTrue token signatures within FastAPI
+SUPABASE_JWT_SECRET=your-secure-supabase-jwt-secret-here
 
 # ==============================================================================
-# MODELOS DE LENGUAJE Y GENERACIÓN DE EMBEDDINGS
+# LLM INFERENCE AND EMBEDDING GENERATION
 # ==============================================================================
-# Inferencia primaria ultrarrápida (Groq Cloud API - Llama 3.3 70B)
+# Primary low-latency inference (Groq Cloud API - Llama 3.3 70B)
 GROQ_API_KEY=gsk_...
 GROQ_MODEL=llama-3.3-70b-versatile
 
-# Inferencia de contingencia / Failover (OpenRouter)
+# Contingency failover inference (OpenRouter)
 OPENROUTER_API_KEY=sk-or-v1-...
 OPENROUTER_MODEL=deepseek/deepseek-chat
 
-# Vectorización de fragmentos normativos y consultas
+# Vector embeddings for statutory chunks and search queries
 OPENAI_API_KEY=sk-proj-...
 EMBEDDING_MODEL=text-embedding-3-small
 EMBEDDING_DIMENSION=1536
 
 # ==============================================================================
-# PARÁMETROS DEL MOTOR RAG
+# RAG ENGINE RETRIEVAL PARAMETERS
 # ==============================================================================
-# Umbral mínimo de similitud coseno para considerar la consulta dentro de alcance
+# Minimum cosine similarity threshold required to answer a query
 RAG_SIMILARITY_THRESHOLD=0.75
 
-# Cantidad máxima de fragmentos legales a inyectar en el prompt
+# Maximum number of statutory chunks injected into the prompt context
 RAG_TOP_K=5
 
-# Temperatura de generación (baja para evitar creatividad y alucinaciones)
+# Generation temperature (low to minimize creativity and prevent hallucinations)
 RAG_TEMPERATURE=0.1
 ```
 
 ---
 
-## 2. Descripción de Parámetros Clave
+## 2. Key Parameter Descriptions
 
-| Variable | Tipo | Obligatorio | Descripción |
+| Variable | Type | Required | Description |
 |---|---|---|---|
-| `ALLOWED_EMAIL_DOMAIN` | String | Sí | Dominio institucional requerido para el registro e inicio de sesión (`unsa.edu.pe`). |
-| `SUPABASE_URL` | String | Sí | Endpoint HTTPS del proyecto Supabase. |
-| `SUPABASE_ANON_KEY` | String | Sí | Llave pública de cliente utilizada para peticiones sujetas a políticas RLS. |
-| `SUPABASE_JWT_SECRET` | String | Sí | Clave criptográfica para decodificar y validar la validez de los tokens JWT entrantes. |
-| `GROQ_API_KEY` | String | Sí | Llave de API del servicio de inferencia en Groq Cloud. |
-| `RAG_SIMILARITY_THRESHOLD` | Float | Sí | Umbral de corte de similitud coseno ($\ge 0.75$). Consultas por debajo de este valor se consideran fuera de alcance. |
-| `RAG_TEMPERATURE` | Float | Sí | Control de estocasticidad del LLM. Se establece en $0.1$ para maximizar determinismo y groundedness. |
+| `ALLOWED_EMAIL_DOMAIN` | String | Yes | Institutional domain enforced for registration and login (`unsa.edu.pe`). |
+| `SUPABASE_URL` | String | Yes | HTTPS endpoint of the Supabase project instance. |
+| `SUPABASE_ANON_KEY` | String | Yes | Public client key used for API requests governed by Row Level Security (RLS). |
+| `SUPABASE_JWT_SECRET` | String | Yes | Cryptographic secret used by FastAPI middleware to decode and verify JWT signatures. |
+| `GROQ_API_KEY` | String | Yes | API authentication key for primary inference on Groq Cloud. |
+| `RAG_SIMILARITY_THRESHOLD` | Float | Yes | Cosine similarity cutoff ($\ge 0.75$). Queries below this score trigger a refusal notice. |
+| `RAG_TEMPERATURE` | Float | Yes | LLM sampling temperature. Set to $0.1$ to enforce deterministic, grounded output. |
 
 ---
 
-## 3. Prácticas de Seguridad y Gestión de Secretos
+## 3. Security Practices and Secrets Governance
 
-1. **Nunca versione el archivo `.env`:** El archivo `.env` está expresamente excluido del repositorio mediante `.gitignore`. Únicamente se versiona `.env.example` con valores ficticios.
-2. **Separación de privilegios:** El backend de atención de consultas de usuarios debe utilizar exclusivamente `SUPABASE_ANON_KEY` junto con el token JWT del usuario para que las políticas de Row Level Security (RLS) aíslen los datos de cada estudiante.
-3. **Uso restringido de `SERVICE_ROLE_KEY`:** La clave de servicio administrativo solo debe ser accesible por el pipeline de ingesta (`ingestion/`) para operaciones masivas de inserción de vectores en la tabla `legal_chunks`.
+1. **Never Commit Secrets:** The `.env` file is excluded from git tracking via `.gitignore`. Only `.env.example` containing dummy template values is maintained in version control.
+2. **Privilege Separation:** End-user query endpoints must interact with Supabase using `SUPABASE_ANON_KEY` combined with the user's JWT bearer token so that Row Level Security (RLS) policies isolate each student's data.
+3. **Restricted Service Role Key:** The `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS and must be isolated to ingestion batch scripts (`ingestion/`) for bulk upsert operations into the `legal_chunks` table.

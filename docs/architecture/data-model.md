@@ -1,24 +1,24 @@
-# Modelo de Datos: Entidades Relacionales y Vectoriales
+# Data Model: Relational and Vector Entities
 
-> **Sistema:** Inti - Asistente Jurídico Inteligente  
-> **Motor de Base de Datos:** PostgreSQL 15+ con extensión `pgvector` en Supabase  
-> **Estrategia:** Esquema unificado para datos transaccionales, auditoría y búsqueda vectorial
+> **System:** Inti - Legal AI Assistant  
+> **Database Engine:** PostgreSQL 15+ with `pgvector` extension on Supabase  
+> **Strategy:** Unified schema for transactional data, audit logs, and vector retrieval
 
 ---
 
-## 1. Diagrama Entidad-Relación (ERD)
+## 1. Entity-Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
-    PROFILES ||--o{ QUERY_SESSIONS : "inicia"
-    QUERY_SESSIONS ||--o{ QUERY_LOGS : "registra"
-    QUERY_LOGS ||--o{ CITATION_REFS : "contiene"
-    LEGAL_CHUNKS ||--o{ CITATION_REFS : "es_referenciado_en"
+    PROFILES ||--o{ QUERY_SESSIONS : "initiates"
+    QUERY_SESSIONS ||--o{ QUERY_LOGS : "records"
+    QUERY_LOGS ||--o{ CITATION_REFS : "contains"
+    LEGAL_CHUNKS ||--o{ CITATION_REFS : "is_referenced_in"
 
     PROFILES {
-        uuid id PK "Referencia a auth.users(id)"
-        string email UK "Correo institucional @unsa.edu.pe"
-        string full_name "Nombre del estudiante o docente"
+        uuid id PK "Reference to auth.users(id)"
+        string email UK "Institutional email @unsa.edu.pe"
+        string full_name "Student or faculty full name"
         string role "student | faculty | admin"
         timestamp created_at
         timestamp updated_at
@@ -26,57 +26,57 @@ erDiagram
 
     QUERY_SESSIONS {
         uuid id PK
-        uuid user_id FK "Referencia a profiles(id)"
-        string session_title "Título generado a partir de la primera consulta"
+        uuid user_id FK "Reference to profiles(id)"
+        string session_title "Title generated from first user query"
         timestamp started_at
         timestamp last_active_at
     }
 
     QUERY_LOGS {
         uuid id PK
-        uuid session_id FK "Referencia a query_sessions(id)"
-        string user_query "Pregunta enviada por el usuario"
-        string assistant_response "Respuesta sintetizada generada"
-        float response_latency_ms "Tiempo de respuesta en milisegundos"
-        int prompt_tokens "Tokens de entrada consumidos"
-        int completion_tokens "Tokens generados en la respuesta"
+        uuid session_id FK "Reference to query_sessions(id)"
+        string user_query "User submitted query text"
+        string assistant_response "Synthesized response generated"
+        float response_latency_ms "Response latency in milliseconds"
+        int prompt_tokens "Input tokens consumed"
+        int completion_tokens "Generated tokens in completion"
         timestamp created_at
     }
 
     LEGAL_CHUNKS {
         uuid id PK
-        string statute_code "Identificador de la norma (e.g. CODIGO_CIVIL_1984)"
-        string statutory_hierarchy "Jerarquía: Libro > Título > Capítulo"
-        int article_number "Número de artículo"
-        string raw_content "Texto oficial del artículo extraído del SPIJ"
-        string official_spij_url "Enlace URL oficial permanente al portal SPIJ"
-        vector embedding "Vector denso de 1536 dimensiones"
+        string statute_code "Norm identifier (e.g. CODIGO_CIVIL_1984)"
+        string statutory_hierarchy "Hierarchy: Book > Title > Chapter"
+        int article_number "Article number"
+        string raw_content "Official article text extracted from SPIJ"
+        string official_spij_url "Permanent official URL link to SPIJ portal"
+        vector embedding "1536-dimensional dense vector"
         timestamp ingested_at
     }
 
     CITATION_REFS {
         uuid id PK
-        uuid query_log_id FK "Referencia a query_logs(id)"
-        uuid chunk_id FK "Referencia a legal_chunks(id)"
-        float similarity_score "Puntaje de similitud coseno calculado"
-        int inline_citation_index "Índice de la cita entre corchetes en la respuesta"
+        uuid query_log_id FK "Reference to query_logs(id)"
+        uuid chunk_id FK "Reference to legal_chunks(id)"
+        float similarity_score "Calculated cosine similarity score"
+        int inline_citation_index "Index of bracketed citation in response"
     }
 ```
 
 ---
 
-## 2. Definición DDL de Tablas Principales
+## 2. Primary Table DDL Definitions
 
-### 2.1. Habilitación de Extensiones
+### 2.1. Extension Enablement
 ```sql
--- Habilitar extensión para cálculo vectorial
+-- Enable vector extension for embedding calculations
 CREATE EXTENSION IF NOT EXISTS vector;
--- Habilitar extensión para identificadores UUID
+-- Enable UUID generation extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ```
 
-### 2.2. Tabla `profiles` (Perfiles Institucionales)
-Almacena la información del usuario vinculada a la cuenta de autenticación de Supabase GoTrue.
+### 2.2. Table `profiles` (Institutional Profiles)
+Stores user account profile information linked to the Supabase GoTrue authentication identity.
 ```sql
 CREATE TABLE public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -89,13 +89,13 @@ CREATE TABLE public.profiles (
 );
 ```
 
-### 2.3. Tabla `query_sessions` (Sesiones de Consulta)
-Agrupa las interacciones conversacionales de los estudiantes.
+### 2.3. Table `query_sessions` (Query Sessions)
+Groups conversational interactions and historical queries per user.
 ```sql
 CREATE TABLE public.query_sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    session_title VARCHAR(255) NOT NULL DEFAULT 'Nueva Consulta',
+    session_title VARCHAR(255) NOT NULL DEFAULT 'New Query',
     started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_active_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -103,8 +103,8 @@ CREATE TABLE public.query_sessions (
 CREATE INDEX idx_query_sessions_user_id ON public.query_sessions(user_id);
 ```
 
-### 2.4. Tabla `query_logs` (Historial de Preguntas y Respuestas)
-Registra cada interacción, latencia y consumo de tokens.
+### 2.4. Table `query_logs` (Question and Answer History)
+Records individual query interactions, latency telemetry, and token metrics.
 ```sql
 CREATE TABLE public.query_logs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -120,8 +120,8 @@ CREATE TABLE public.query_logs (
 CREATE INDEX idx_query_logs_session_id ON public.query_logs(session_id);
 ```
 
-### 2.5. Tabla `legal_chunks` (Fragmentos Normativos y Vectores)
-Contiene los artículos del Código Civil segmentados jerárquicamente con sus respectivos embeddings densos.
+### 2.5. Table `legal_chunks` (Statutory Chunks and Vectors)
+Contains Civil Code articles chunked hierarchically with corresponding 1536-dimensional dense embeddings.
 ```sql
 CREATE TABLE public.legal_chunks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -135,7 +135,7 @@ CREATE TABLE public.legal_chunks (
     CONSTRAINT uq_statute_article UNIQUE (statute_code, article_number)
 );
 
--- Índice HNSW optimizado para distancia coseno (<=>)
+-- Optimized HNSW index for cosine distance queries (<=>)
 CREATE INDEX idx_legal_chunks_embedding ON public.legal_chunks 
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
@@ -143,8 +143,8 @@ WITH (m = 16, ef_construction = 64);
 CREATE INDEX idx_legal_chunks_article ON public.legal_chunks(statute_code, article_number);
 ```
 
-### 2.6. Tabla `citation_refs` (Trazabilidad de Citas Generadas)
-Vincula cada respuesta del asistente con los fragmentos normativos específicos que fundamentaron la respuesta.
+### 2.6. Table `citation_refs` (Citation Traceability)
+Links assistant responses with specific statutory chunks that grounded the generated legal answer.
 ```sql
 CREATE TABLE public.citation_refs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -160,27 +160,27 @@ CREATE INDEX idx_citation_refs_query_log ON public.citation_refs(query_log_id);
 
 ---
 
-## 3. Políticas de Seguridad a Nivel de Fila (RLS)
+## 3. Row Level Security Policies (RLS)
 
-Para garantizar la privacidad entre estudiantes, se configuran políticas estrictas de Row-Level Security:
+To guarantee student privacy, strict Row Level Security policies are enforced:
 
 ```sql
--- Activar RLS en todas las tablas transaccionales
+-- Enable RLS across all transactional tables
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.query_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.query_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.legal_chunks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.citation_refs ENABLE ROW LEVEL SECURITY;
 
--- 1. Perfiles: Los usuarios solo pueden ver y editar su propio perfil
+-- 1. Profiles: Users can only read and update their own profile
 CREATE POLICY profiles_user_policy ON public.profiles
     FOR ALL USING (auth.uid() = id);
 
--- 2. Sesiones de consulta: Los usuarios solo pueden acceder a sus propias sesiones
+-- 2. Query sessions: Users can only access their own sessions
 CREATE POLICY query_sessions_user_policy ON public.query_sessions
     FOR ALL USING (auth.uid() = user_id);
 
--- 3. Historial de consultas: Accesible únicamente a través de las sesiones del usuario
+-- 3. Query logs: Accessible only via the owner's sessions
 CREATE POLICY query_logs_user_policy ON public.query_logs
     FOR ALL USING (
         EXISTS (
@@ -189,16 +189,16 @@ CREATE POLICY query_logs_user_policy ON public.query_logs
         )
     );
 
--- 4. Fragmentos legales: Lectura pública para cualquier usuario autenticado
+-- 4. Legal chunks: Read access granted to all authenticated users
 CREATE POLICY legal_chunks_read_policy ON public.legal_chunks
     FOR SELECT TO authenticated USING (true);
 ```
 
 ---
 
-## 4. Función de Búsqueda Semántica Vectorial
+## 4. Semantic Vector Search Function
 
-Función invocada vía RPC desde el backend FastAPI para ejecutar la recuperación por distancia coseno filtrando por umbral de similitud:
+Invoked via RPC from the FastAPI backend to execute nearest neighbor retrieval filtered by similarity threshold:
 
 ```sql
 CREATE OR REPLACE FUNCTION match_legal_chunks(

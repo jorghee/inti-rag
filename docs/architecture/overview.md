@@ -1,127 +1,127 @@
-# Arquitectura del Sistema: Inti
+# System Architecture: Inti
 
-> **Sistema:** Inti - Asistente Jurídico Inteligente (RAG)  
-> **Patrón Arquitectónico:** Arquitectura en 4 Capas Desacopladas (Presentation, API Application, Persistence, Ingestion/Inference)
-
----
-
-## 1. Visión General de la Arquitectura
-
-**Inti** es una solución de búsqueda y generación aumentada por recuperación (RAG) diseñada específicamente para responder consultas sobre la legislación civil peruana y jurisprudencia vinculante.
-
-El diseño del sistema busca garantizar tres invariantes fundamentales:
-1. **Cero especulación jurídica:** Si una respuesta no está sustentada en un fragmento normativo recuperado, el sistema declina responder.
-2. **Trazabilidad absoluta:** Cada afirmación debe acompañarse de un enlace interactivo al texto original del Sistema Peruano de Información Jurídica (SPIJ).
-3. **Latencia interactiva:** El tiempo total de respuesta desde el envío de la consulta hasta el inicio del streaming no debe superar los 2 segundos, y la respuesta completa debe completarse en menos de 5 segundos.
+> **System:** Inti - Legal AI Assistant (RAG)  
+> **Architectural Pattern:** 4-Tier Decoupled Architecture (Presentation, Application API, Persistence, Ingestion/Inference)
 
 ---
 
-## 2. Diagrama de Capas del Sistema
+## 1. Architectural Overview
+
+**Inti** is a retrieval-augmented generation (RAG) solution purpose-built to answer legal queries regarding Peruvian civil legislation and binding jurisprudence for undergraduate law students and academic faculty at Universidad Nacional de San Agustín (UNSA).
+
+The system architecture is engineered around three non-negotiable invariants:
+1. **Zero Legal Hallucination:** If a submitted query is not supported by indexed statutory chunks, the system explicitly declines to answer rather than speculating.
+2. **Absolute Traceability:** Every legal assertion must be backed by an interactive hyperlink pointing directly to the official Sistema Peruano de Información Jurídica (SPIJ) repository.
+3. **Interactive Low Latency:** Time-to-first-token (TTFT) must remain under 2 seconds, with full response completion delivered in under 5 seconds.
+
+---
+
+## 2. System Tier Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Tier1["1. Capa de Presentación (Client Tier)"]
-        WebUI["Web Responsiva (HTML5 / Vanilla CSS / ES6 JavaScript)"]
-        SSEConsumer["Consumidor de Server-Sent Events (SSE)"]
-        CitationModal["Visor Interactivo de Citas y Fuentes Oficiales"]
+    subgraph Tier1["1. Presentation Tier (Client Tier)"]
+        WebUI["Responsive Web UI (HTML5 / Vanilla CSS / ES6 JavaScript)"]
+        SSEConsumer["Server-Sent Events (SSE) Consumer"]
+        CitationModal["Interactive Citation & Source Inspector"]
         WebUI --- SSEConsumer
         WebUI --- CitationModal
     end
 
-    subgraph Tier2["2. Capa de Aplicación (Application Tier - FastAPI)"]
-        AuthRouter["Router de Autenticación\n(Validación JWT + Filtro @unsa.edu.pe)"]
-        QueryRouter["Router de Consultas Jurídicas\n(Streaming SSE / REST)"]
-        RAGOrchestrator["Orquestador RAG\n(Pipeline LlamaIndex)"]
-        CitationFormatter["Formateador y Validador de Citas\n(Grounding Engine)"]
+    subgraph Tier2["2. Application Tier (FastAPI API)"]
+        AuthRouter["Authentication Router\n(JWT Validation + @unsa.edu.pe Filter)"]
+        QueryRouter["Legal Query Router\n(Streaming SSE / REST)"]
+        RAGOrchestrator["RAG Orchestrator\n(LlamaIndex Pipeline)"]
+        CitationFormatter["Citation Formatter & Grounding Engine"]
         
         QueryRouter --> RAGOrchestrator
         RAGOrchestrator --> CitationFormatter
     end
 
-    subgraph Tier3["3. Capa de Persistencia (Persistence Tier - Supabase)"]
-        PostgresRelational[("PostgreSQL 15+\n(Perfiles, Sesiones, Logs de Consulta)")]
-        VectorStore[("Extensión pgvector\n(Embeddings de Fragmentos 1536d)")]
-        RLSPolicies["Políticas de Seguridad a Nivel de Fila (RLS)"]
+    subgraph Tier3["3. Persistence Tier (Supabase)"]
+        PostgresRelational[("PostgreSQL 15+\n(Profiles, Sessions, Query Logs)")]
+        VectorStore[("pgvector Extension\n(1536d Chunk Embeddings)")]
+        RLSPolicies["Row Level Security Policies (RLS)"]
     end
 
-    subgraph Tier4["4. Servicios Externos e Ingesta (External & Ingestion Tier)"]
-        SPIJScraper["Pipeline de Ingesta SPIJ\n(Extracción asíncrona + Backoff)"]
-        HierarchicalParser["Parser Jerárquico\n(Libro > Título > Capítulo > Artículo)"]
-        EmbeddingService["Servicio de Vectorización\n(OpenAI text-embedding-3-small)"]
-        GroqInference["Inferencia Primaria Ultrarrápida\n(Groq Cloud API - Llama 3.3 70B)"]
-        OpenRouterFallback["Inferencia de Contingencia\n(OpenRouter - DeepSeek-V4.1 / GPT-6 Luna)"]
+    subgraph Tier4["4. External & Ingestion Tier"]
+        SPIJScraper["SPIJ Ingestion Pipeline\n(Async Scraping + Backoff)"]
+        HierarchicalParser["Hierarchical Parser\n(Book > Title > Chapter > Article)"]
+        EmbeddingService["Embedding Service\n(OpenAI text-embedding-3-small)"]
+        GroqInference["Primary Fast Inference\n(Groq Cloud API - Llama 3.3 70B)"]
+        OpenRouterFallback["Contingency Inference\n(OpenRouter - DeepSeek-V4.1 / GPT-6 Luna)"]
     end
 
     WebUI <-->|HTTPS / REST| AuthRouter
     SSEConsumer <-->|HTTPS / Streaming SSE| QueryRouter
     AuthRouter <--> PostgresRelational
-    RAGOrchestrator <-->|Búsqueda Coseno (<=>)| VectorStore
-    RAGOrchestrator -->|Inferencia Principal| GroqInference
-    GroqInference -.->|Falla o Rate-Limit| OpenRouterFallback
+    RAGOrchestrator <-->|"Cosine Search (<=>)"| VectorStore
+    RAGOrchestrator -->|Primary Inference| GroqInference
+    GroqInference -.->|Failover on Rate Limit| OpenRouterFallback
     SPIJScraper --> HierarchicalParser --> EmbeddingService --> VectorStore
 ```
 
 ---
 
-## 3. Responsabilidades de las Capas
+## 3. Tier Responsibilities
 
-### 3.1. Capa de Presentación (Client Tier)
-- Implementada como una aplicación web ligera y accesible desde navegadores móviles y de escritorio sin requerir empaquetado nativo (conforme a [`decisions.md#adr-005`](decisions.md#adr-005-mobile-responsive-web-application-over-native-mobile-implementations)).
-- Manejo de flujo de autenticación, almacenamiento del token de sesión en memoria/storage seguro.
-- Renderizado de tokens en tiempo real mediante Server-Sent Events (SSE).
-- Renderizado de citas jurídicas con hipervínculos estructurados (`[Código Civil, Art. 1969]`) y vista previa modal.
+### 3.1. Presentation Tier (Client Tier)
+- Implemented as a lightweight web application fully accessible from desktop and mobile browsers without requiring native packaging ([`decisions.md#adr-005`](decisions.md#adr-005-mobile-responsive-web-application-over-native-mobile-implementations)).
+- Manages authentication state and stores session tokens securely in browser storage.
+- Renders tokens in real time using standard Server-Sent Events (SSE).
+- Displays structured statutory citations (`[Código Civil, Art. 1969]`) with interactive preview popovers and direct official links.
 
-### 3.2. Capa de Aplicación (FastAPI Backend)
-- **FastAPI 0.110+**: Proporciona validación estricta de esquemas mediante modelos Pydantic v2.
-- **Seguridad**: Middleware de verificación de firma JWT emitido por Supabase GoTrue; rechazo de correos que no pertenezcan al dominio institucional `@unsa.edu.pe` ([`decisions.md#adr-004`](decisions.md#adr-004-unsa-institutional-email-validation-strategy-unsaedupe)).
-- **Orquestación RAG**: Conexión con LlamaIndex para recuperar los fragmentos normativos más relevantes a partir de la similitud coseno.
-- **Validador de Anclaje (Grounding)**: Verifica que la respuesta generada por el LLM contenga únicamente afirmaciones respaldadas por los fragmentos provistos en el prompt.
+### 3.2. Application Tier (FastAPI Backend)
+- **FastAPI 0.110+**: Provides strict request/response data validation via Pydantic v2 schemas.
+- **Security Middleware**: Verifies Supabase GoTrue JWT signatures and rejects accounts that do not belong to the `@unsa.edu.pe` institutional domain ([`decisions.md#adr-004`](decisions.md#adr-004-unsa-institutional-email-validation-strategy-unsaedupe)).
+- **RAG Orchestrator**: Coordinates LlamaIndex to query nearest vector neighbors via cosine similarity.
+- **Grounding Engine**: Enforces anti-hallucination rules, validating that all synthesized claims are grounded in retrieved statutory chunks before presentation.
 
-### 3.3. Capa de Persistencia (Supabase PostgreSQL + pgvector)
-- Almacenamiento unificado para datos relacionales (cuentas, historiales de búsqueda) y vectores semánticos en la misma base de datos ([`decisions.md#adr-001`](decisions.md#adr-001-unified-relational-and-vector-storage-with-supabase-postgresql--pgvector)).
-- Tabla `legal_chunks` con columna de tipo `vector(1536)` indexada con algoritmo HNSW para consultas por distancia coseno (`<=>`) en menos de 500 ms.
-- Aislamiento de sesiones mediante Row Level Security (RLS).
+### 3.3. Persistence Tier (Supabase PostgreSQL + pgvector)
+- Unified relational and vector database combining transactional records (user accounts, session history) and embeddings in a single cluster ([`decisions.md#adr-001`](decisions.md#adr-001-unified-relational-and-vector-storage-with-supabase-postgresql--pgvector)).
+- `legal_chunks` table stores 1536-dimensional embeddings indexed with HNSW for sub-500ms cosine distance (`<=>`) queries.
+- Strict isolation of student conversation histories enforced through Row Level Security (RLS) policies.
 
-### 3.4. Capa de Ingesta e Inferencia (External Tier)
-- **Scraper SPIJ**: Módulo de extracción web en Python con pausas y retroceso exponencial (1.5s backoff) para respetar las políticas del servidor oficial del MINJUS.
-- **Parser Jerárquico**: Segmentador sintáctico que preserva la estructura del Código Civil (Libro > Título > Capítulo > Artículo), evitando cortes arbitrarios de texto ([`decisions.md#adr-002`](decisions.md#adr-002-hierarchical-chunking-pipeline-for-peruvian-codified-norms)).
-- **Motor de Inferencia**: Llamada a Groq Cloud (Meta Llama 3.3 70B Versatile) con latencia por token extremadamente reducida; conmutación automática por fallback a OpenRouter si se satura el rate limit ([`decisions.md#adr-003`](decisions.md#adr-003-multi-tiered-llm-inference-engine-groq-llama-33-with-openrouter-contingency)).
+### 3.4. Ingestion & Inference Tier (External Tier)
+- **SPIJ Scraper**: Python extraction pipeline equipped with adaptive exponential backoff (1.5s base pause) to respect MINJUS government portal rate limits.
+- **Hierarchical Parser**: Syntactic chunker that preserves the hierarchical codification of the Civil Code (*Book > Title > Chapter > Article*), avoiding arbitrary mid-article splits ([`decisions.md#adr-002`](decisions.md#adr-002-hierarchical-chunking-pipeline-for-peruvian-codified-norms)).
+- **Inference Engine**: Primary inference executed via Groq Cloud API (Meta Llama 3.3 70B Versatile) for ultra-low token latency at zero cost; automatic contingency failover to OpenRouter upon rate-limit triggers ([`decisions.md#adr-003`](decisions.md#adr-003-multi-tiered-llm-inference-engine-groq-llama-33-with-openrouter-contingency)).
 
 ---
 
-## 4. Ciclo de Vida de una Consulta Jurídica
+## 4. Lifecycle of a Legal Query
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Estudiante as Estudiante / Docente
-    participant Web as Interfaz Web
+    actor Student as Law Student / Faculty
+    participant Web as Web Interface
     participant API as FastAPI Router
     participant Llama as LlamaIndex RAG
     participant DB as Supabase pgvector
     participant LLM as Groq API (Llama 3.3)
 
-    Estudiante->>Web: Introduce pregunta en lenguaje natural
+    Student->>Web: Enter natural language legal query
     Web->>API: POST /api/v1/query {prompt, session_id}
     activate API
-    API->>API: Valida token JWT institucional (@unsa.edu.pe)
-    API->>Llama: Despacha consulta con contexto de sesión
+    API->>API: Validate institutional JWT token (@unsa.edu.pe)
+    API->>Llama: Dispatch query with session context
     activate Llama
-    Llama->>DB: Búsqueda vectorial (SELECT chunks WHERE cosine_sim >= 0.75 LIMIT 5)
-    DB-->>Llama: Devuelve fragmentos normativos (Artículo, Libro, URL SPIJ)
+    Llama->>DB: Vector search (SELECT chunks WHERE cosine_sim >= 0.75 LIMIT 5)
+    DB-->>Llama: Return statutory chunks (Article, Book, SPIJ URL)
     
-    alt Ningún fragmento supera umbral 0.75
-        Llama-->>API: Notificación de fuera de alcance
-        API-->>Web: Respuesta controlada: "La consulta no se encuentra en el corpus normativo indexado"
-    else Fragmentos relevantes recuperados
-        Llama->>LLM: Inferencia con System Prompt + Fragmentos Oficiales
+    alt No chunks exceed 0.75 similarity threshold
+        Llama-->>API: Out-of-scope notification
+        API-->>Web: Controlled refusal - "Query is not grounded in indexed corpus"
+    else Relevant chunks retrieved
+        Llama->>LLM: Inference with System Prompt + Official Chunks
         activate LLM
-        LLM-->>Llama: Stream de tokens con citas entre corchetes
+        LLM-->>Llama: Token stream with bracketed citations
         deactivate LLM
-        Llama-->>API: Stream de respuesta enriquecida
-        API-->>Web: Streaming SSE con enlaces clicables [Código Civil, Art. 1969]
+        Llama-->>API: Enriched response stream
+        API-->>Web: Streaming SSE with clickable links [Código Civil, Art. 1969]
     end
     deactivate Llama
     deactivate API
-    Web-->>Estudiante: Visualización interactiva progresiva
+    Web-->>Student: Progressive interactive rendering
 ```

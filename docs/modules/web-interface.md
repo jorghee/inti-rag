@@ -1,47 +1,47 @@
-# Interfaz Web Responsiva y Cliente Frontend
+# Responsive Web Interface and Frontend Client
 
-> **Subsistema:** Capa de Presentación del Usuario  
-> **Historia de Usuario:** `HU-08` (Interfaz Adaptada a Dispositivos Móviles - Web Responsiva)  
-> **Decisión de Arquitectura:** [`../architecture/decisions.md#adr-005`](../architecture/decisions.md#adr-005-mobile-responsive-web-application-over-native-mobile-implementations)
-
----
-
-## 1. Propósito y Alcance
-
-La interfaz web proporciona una experiencia de usuario moderna, fluida y accesible para estudiantes y docentes de Derecho tanto en dispositivos móviles (smartphones) como en computadoras de escritorio de salas de estudio y bibliotecas de la UNSA.
-
-Conforme a la decisión de arquitectura [`ADR-005`](../architecture/decisions.md#adr-005-mobile-responsive-web-application-over-native-mobile-implementations), se descartó el desarrollo de aplicaciones móviles nativas (Android/iOS) para concentrar el esfuerzo en una **Single Page Application (SPA) responsiva** basada en estándares web abiertos (HTML5, Vanilla CSS y Vanilla JS), eliminando barreras de instalación y costos de mantenimiento en tiendas de aplicaciones.
+> **Subsystem:** User Presentation Layer  
+> **User Story:** `HU-08` (Mobile-Adapted Responsive Web Interface)  
+> **Architecture Decision:** [`../architecture/decisions.md#adr-005`](../architecture/decisions.md#adr-005-mobile-responsive-web-application-over-native-mobile-implementations)
 
 ---
 
-## 2. Puntos de Quiebre Responsivos (Breakpoints)
+## 1. Purpose and Scope
 
-El diseño utiliza una metodología *mobile-first*:
+The web interface provides an accessible, low-latency, and fluid user experience for law students and academic faculty across both mobile smartphones and library/study hall desktop workstations at UNSA.
 
-| Dispositivo | Rango de Ancho | Adaptaciones de Interfaz |
+In accordance with [`ADR-005`](../architecture/decisions.md#adr-005-mobile-responsive-web-application-over-native-mobile-implementations), native iOS/Android development was rejected in favor of a **responsive Single Page Application (SPA)** built with open standards (HTML5, Vanilla CSS, and Vanilla JavaScript). This eliminates app store distribution fees ($124 USD) and platform review cycles while guaranteeing instant updates across all browsers.
+
+---
+
+## 2. Responsive Breakpoints
+
+The UI follows a *mobile-first* design strategy:
+
+| Device Category | Viewport Width | Interface Adaptations |
 |---|---|---|
-| **Móvil (Smartphones)** | $< 768\text{ px}$ | Barra lateral colapsable (menú hamburguesa), área de chat a pantalla completa, panel de citas en hoja inferior (*bottom sheet*), tamaño de toque táctil mínimo de $48\times 48\text{ px}$. |
-| **Tablet / Portátil Pequeña** | $768\text{ px} - 1024\text{ px}$ | Barra lateral colapsada en iconos, panel de chat centralizado, citas en panel lateral derecho desplegable. |
-| **Escritorio (Desktop)** | $> 1024\text{ px}$ | Vista completa de 3 columnas: (1) Historial de sesiones, (2) Ventana principal de conversación y streaming, (3) Inspector lateral de artículos normativos citados. |
+| **Mobile (Smartphones)** | $< 768\text{ px}$ | Collapsible drawer menu, full-screen conversation pane, citations displayed in an overlay bottom sheet, minimum touch target of $48\times 48\text{ px}$. |
+| **Tablet / Small Laptop** | $768\text{ px} - 1024\text{ px}$ | Sidebar collapsed to icon rail, centered chat pane, expandable right-hand slide-over inspector for legal citations. |
+| **Desktop Workstations** | $> 1024\text{ px}$ | Full 3-column layout: (1) Query history and session navigation, (2) Main streaming conversation view, (3) Persistent statutory citation inspector. |
 
 ---
 
-## 3. Componentes Principales de la Interfaz
+## 3. Primary Interface Components
 
 ```mermaid
 flowchart TD
-    subgraph Layout["Estructura del Layout Web (Desktop)"]
-        Sidebar["Barra Lateral Izquierda\n(Nueva Consulta, Sesiones Previas, Perfil)"]
-        ChatMain["Área Central de Chat\n(Línea de tiempo de mensajes, Input de consulta)"]
-        CitationPanel["Panel Lateral Derecho\n(Vista previa de artículos citados y URLs SPIJ)"]
+    subgraph Layout["Web Layout Architecture (Desktop)"]
+        Sidebar["Left Sidebar\n(New Query, Prior Sessions, Profile)"]
+        ChatMain["Central Chat Pane\n(Message timeline, Query input)"]
+        CitationPanel["Right Side Inspector\n(Preview of cited articles & SPIJ links)"]
     end
 
-    Sidebar -->|Seleccionar Sesión| ChatMain
-    ChatMain -->|Clic en Cita Clicable| CitationPanel
+    Sidebar -->|Select Session| ChatMain
+    ChatMain -->|Click Interactive Citation| CitationPanel
 ```
 
-### 3.1. Cliente de Streaming en JavaScript (ES6)
-El cliente frontend consume las respuestas progresivas mediante la API estándar `fetch` y `ReadableStream`:
+### 3.1. JavaScript Streaming Client (ES6)
+The frontend consumes token streams directly using the standard `fetch` and `ReadableStream` APIs:
 
 ```javascript
 async function submitLegalQuery(queryText, sessionId, authToken) {
@@ -63,7 +63,7 @@ async function submitLegalQuery(queryText, sessionId, authToken) {
     if (done) break;
     const chunk = decoder.decode(value, { stream: true });
     
-    // Procesa eventos Server-Sent Events (SSE)
+    // Process Server-Sent Events (SSE) data lines
     const lines = chunk.split('\n');
     for (const line of lines) {
       if (line.startsWith('data: ') && !line.includes('[DONE]')) {
@@ -75,11 +75,13 @@ async function submitLegalQuery(queryText, sessionId, authToken) {
 }
 ```
 
-### 3.2. Renderizado de Enlaces a Fuentes Oficiales
-Cuando el backend emite una cita con el patrón `[Código Civil, Art. X](https://spij.minjus.gob.pe/...)`, el parser de frontend la transforma en un enlace con estilo de píldora interactiva:
+### 3.2. Official Statutory Citation Rendering
+When the backend yields a grounded citation matching `[Código Civil, Art. X](https://spij.minjus.gob.pe/...)`, the client parser formats it into an interactive citation pill:
+
 ```html
 <a href="https://spij.minjus.gob.pe/#/detallenorma/H682695" target="_blank" rel="noopener noreferrer" class="legal-citation-pill">
   <span class="citation-badge">Art.</span> Código Civil, Art. 1969
 </a>
 ```
-Al hacer clic, abre la fuente oficial del SPIJ en una nueva pestaña o despliega el texto completo en el panel lateral de previsualización sin abandonar la conversación.
+
+Clicking a citation pill opens the official SPIJ statute in a secure tab or populates the right-hand citation inspector panel without navigating away from the conversational session.
