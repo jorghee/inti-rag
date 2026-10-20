@@ -1,0 +1,64 @@
+name: "Tarea Técnica (Technical Task)"
+description: "Tarea técnica atomizada (2 a 6 horas) para ejecución dentro de un Sprint"
+title: "[TASK-XX.Y] "
+labels: ["type: technical-task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Tarea Técnica Atomizada
+        Complete la información para la asignación y ejecución en el Sprint activo.
+
+  - type: dropdown
+    id: componente
+    attributes:
+      label: Componente Técnico
+      description: "¿Qué área del código se intervendrá?"
+      options:
+        - "component: backend"
+        - "component: ingestion"
+        - "component: rag-engine"
+        - "component: database"
+        - "component: frontend"
+    validations:
+      required: true
+
+  - type: input
+    id: historia_padre
+    attributes:
+      label: Historia de Usuario Padre
+      description: "Referencia a la Historia de Usuario que descompone esta tarea (ej. HU-05, HU-03)."
+      placeholder: "HU-XX"
+    validations:
+      required: true
+
+  - type: textarea
+    id: objetivo
+    attributes:
+      label: Objetivo y Alcance Técnico
+      description: "¿Qué componente, endpoint, script o vista se debe construir o modificar?"
+      placeholder: "Describir claramente el objetivo de la tarea técnica..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: especificacion
+    attributes:
+      label: Especificación Técnica y Archivos
+      description: "Detalles de arquitectura, librerías y rutas de archivos afectadas."
+      placeholder: |
+        - Archivos a intervenir: `backend/app/...`
+        - Endpoints / Funciones:
+        - Pruebas a implementar: `tests/...`
+
+  - type: checkboxes
+    id: dod
+    attributes:
+      label: Definition of Done (DoD)
+      description: "Criterios de terminación obligatorios para mover la tarea a Done."
+      options:
+        - label: "Código limpio y verificado con linter (`ruff check .` sin advertencias)"
+        - label: "Tipado estricto validado en Python (`mypy`)"
+        - label: "Pruebas unitarias ejecutadas con cobertura mínima del 80% (`pytest`)"
+        - label: "Pull Request aprobado por al menos un revisor técnico par"
+        - label: "Criterios de aceptación verificados positivamente"

@@ -1,0 +1,50 @@
+name: "Reporte de Defecto (Bug Report)"
+description: "Notificar un fallo, error o comportamiento anómalo en el software"
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Reporte de Defecto
+        Proporcione información detallada para reproducir y corregir el error.
+
+  - type: dropdown
+    id: componente
+    attributes:
+      label: Componente Afectado
+      options:
+        - "component: backend"
+        - "component: ingestion"
+        - "component: rag-engine"
+        - "component: database"
+        - "component: frontend"
+    validations:
+      required: true
+
+  - type: textarea
+    id: comportamiento_observado
+    attributes:
+      label: Comportamiento Observado vs. Esperado
+      description: "¿Qué ocurrió y qué debió haber ocurrido según los requisitos?"
+      placeholder: "Observado: ... | Esperado: ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: pasos_reproduccion
+    attributes:
+      label: Pasos para Reproducir
+      description: "Secuencia exacta de pasos para reproducir el fallo."
+      placeholder: |
+        1. Ingresar a ...
+        2. Ejecutar la acción ...
+        3. Observar el error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs_evidencias
+    attributes:
+      label: Logs, Capturas o Mensajes de Error
+      description: "Pegue aquí las trazas de error o información relevante del terminal/consola."

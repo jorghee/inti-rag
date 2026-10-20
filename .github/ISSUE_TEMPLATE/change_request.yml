@@ -1,0 +1,70 @@
+name: "Solicitud de Cambio (Change Request)"
+description: "Proponer una modificación formal a las líneas base de alcance, cronograma, costos o arquitectura (CCB)"
+title: "[CR-XXX] "
+labels: ["type: change-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Solicitud Formal de Cambio (Change Request)
+        Este formulario inicia el procedimiento formal ante el Comité de Control de Cambios (CCB).
+
+  - type: dropdown
+    id: tipo_cambio
+    attributes:
+      label: Tipo de Cambio Propuesto
+      description: "Seleccione la categoría según el nivel de impacto estimado."
+      options:
+        - "Nivel 1: Cambio de Emergencia / Hotfix (Seguridad o caída crítica)"
+        - "Nivel 2: Cambio Menor / Técnico (Refactorización o ajuste sin impacto en alcance/SP)"
+        - "Nivel 3: Cambio Mayor / Impacto en Línea Base (Modifica HU, SP, Milestones o Presupuesto)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: justificacion
+    attributes:
+      label: Justificación de Negocio y Necesidad
+      description: "¿Qué problema, dolor de usuario u oportunidad motiva esta solicitud?"
+      placeholder: "Describir el motivo por el cual es necesario este cambio para el proyecto Inti..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: descripcion_modificacion
+    attributes:
+      label: Descripción de la Modificación Propuesta
+      description: "Detalle técnico de los componentes, pantallas, endpoints o historias afectadas."
+      placeholder: |
+        - Alcance propuesto:
+        - Historias de Usuario afectadas:
+        - Decisiones de arquitectura (ADRs) afectadas:
+    validations:
+      required: true
+
+  - type: textarea
+    id: analisis_impacto
+    attributes:
+      label: Análisis Preliminar de Impacto Técnico (Triple Restricción)
+      description: "Evaluación sobre horas hombre, Story Points, costos de API y riesgos."
+      placeholder: |
+        - Variación en Story Points:
+        - Demanda de horas hombre vs. capacidad disponible (64 h/sprint):
+        - Impacto en costos / infraestructura (tokens, almacenamiento):
+        - Recursos y especialidades requeridas (Frontend / Backend / DB):
+        - Nuevos riesgos introducidos:
+    validations:
+      required: true
+
+  - type: textarea
+    id: resolucion_ccb
+    attributes:
+      label: Resolución del Comité de Control de Cambios (CCB)
+      description: "Esta sección es completada exclusivamente por el CCB durante la sesión formal."
+      placeholder: |
+        - Fecha de Sesión: AAAA-MM-DD
+        - Código de Acta: ACTA-CCB-2026-XXX
+        - Dictamen Oficial: [APROBADO / RECHAZADO / POSPUESTO]
+        - Votación: X votos a favor, Y en contra
+        - Fundamentación del Dictamen:
+        - Acciones derivadas (ramas, Milestones, swaps):

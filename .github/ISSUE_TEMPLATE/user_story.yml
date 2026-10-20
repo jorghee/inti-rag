@@ -1,0 +1,72 @@
+name: "Historia de Usuario (User Story)"
+description: "Proponer una nueva funcionalidad orientada al valor de negocio o al usuario"
+title: "[HU-XX] "
+labels: ["type: user-story"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Historia de Usuario
+        Especifique la necesidad funcional siguiendo el formato ágil estándar.
+
+  - type: dropdown
+    id: componente
+    attributes:
+      label: Componente del Sistema
+      description: "¿Qué subsistema técnico abarca esta funcionalidad?"
+      options:
+        - "component: rag-engine"
+        - "component: backend"
+        - "component: ingestion"
+        - "component: database"
+        - "component: frontend"
+    validations:
+      required: true
+
+  - type: textarea
+    id: narrativa
+    attributes:
+      label: Narrativa de Usuario (Cono de Valor)
+      description: "Especifique el rol, la acción y el beneficio esperado."
+      placeholder: |
+        **Como** [rol del usuario: estudiante de Derecho, docente, etc.],
+        **quiero** [acción o capacidad técnica requerida],
+        **para** [beneficio o valor que resuelve el dolor del usuario].
+    validations:
+      required: true
+
+  - type: textarea
+    id: criterios_aceptacion
+    attributes:
+      label: Criterios de Aceptación (Gherkin / Given-When-Then)
+      description: "Defina al menos dos escenarios de prueba verificables."
+      placeholder: |
+        #### Escenario 1: [Nombre del escenario principal]
+        * **DADO QUE** [precondición del sistema],
+        * **CUANDO** [acción del usuario o evento],
+        * **ENTONCES** [resultado esperado verificable].
+
+        #### Escenario 2: [Nombre del escenario secundario o de error]
+        * **DADO QUE** [precondición],
+        * **CUANDO** [acción],
+        * **ENTONCES** [resultado esperado].
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencias
+    attributes:
+      label: Dependencias Técnicas o Funcionales
+      description: "Historias previas, componentes de datos o APIs necesarias."
+      placeholder: "Ej. Requiere que HU-03 esté completada (corpus indexado en pgvector)."
+
+  - type: checkboxes
+    id: dor
+    attributes:
+      label: Definition of Ready (DoR)
+      description: "Verifique que la historia cumple los criterios mínimos para planificación."
+      options:
+        - label: "Narrativa estructurada en formato Como / Quiero / Para"
+        - label: "Criterios de aceptación expresados en Given-When-Then"
+        - label: "Estimación consensuada en Story Points (Fibonacci)"
+        - label: "Dependencias técnicas y de arquitectura mapeadas"

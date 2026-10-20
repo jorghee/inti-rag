@@ -1,0 +1,35 @@
+name: Project Automation - PR Review Transition
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  issues: write
+  pull-requests: write
+  repository-projects: write
+
+jobs:
+  move-to-review:
+    name: Transition Linked Issues to Review
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Transition linked issues in GitHub Projects
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "Analyzing pull request body for linked issues..."
+          ISSUES=$(echo "$PR_BODY" | grep -ioE '(close[sd]?|fixe?[sd]?|resolve[sd]?)\s+#[0-9]+' | grep -oE '[0-9]+' | sort -u || true)
+
+          if [ -z "$ISSUES" ]; then
+            echo "No closing keywords (Closes #ID, Fixes #ID) detected in PR description."
+            exit 0
+          fi
+
+          for ISSUE_NUM in $ISSUES; do
+            echo "Updating issue #$ISSUE_NUM to Review state in Project 3..."
+            ISSUE_URL="https://github.com/${{ github.repository }}/issues/$ISSUE_NUM"
+            gh project item-edit 3 --owner jorghee --url "$ISSUE_URL" --field "Status" --value "Review" || echo "Status update skipped if token lacks project scope"
+          done

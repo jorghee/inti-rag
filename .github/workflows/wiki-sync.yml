@@ -1,0 +1,91 @@
+name: Sync Management to Wiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "management/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-wiki:
+    name: Push Management Docs to GitHub Wiki
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Clone Wiki repository
+        id: clone_wiki
+        env:
+          AUTH_TOKEN: ${{ secrets.PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Verificando disponibilidad del repositorio Wiki..."
+          if git clone "https://x-access-token:${AUTH_TOKEN}@github.com/${{ github.repository }}.wiki.git" wiki-repo 2>/dev/null; then
+            echo "wiki_available=true" >> "$GITHUB_OUTPUT"
+            echo "Repositorio Wiki clonado exitosamente."
+          else
+            echo "Aviso: Repositorio Wiki no disponible (la Wiki puede requerir que se cree la primera pagina 'Home' desde la interfaz web de GitHub o verificar permisos de escritura)."
+            echo "wiki_available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Flatten and copy Markdown files
+        if: steps.clone_wiki.outputs.wiki_available == 'true'
+        run: |
+          find management/ -name "*.md" | while read filepath; do
+            filename=$(basename "$filepath")
+            cp "$filepath" "wiki-repo/$filename"
+            echo "Copiado: $filepath -> wiki-repo/$filename"
+          done
+
+      - name: Copy images to wiki uploads folder
+        if: steps.clone_wiki.outputs.wiki_available == 'true'
+        run: |
+          mkdir -p wiki-repo/uploads
+
+          find management/ -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.gif" -o -name "*.webp" -o -name "*.svg" \) | while read imgpath; do
+            imgname=$(basename "$imgpath")
+            cp "$imgpath" "wiki-repo/uploads/$imgname"
+            echo "Imagen copiada: $imgpath -> wiki-repo/uploads/$imgname"
+          done
+
+      - name: Rewrite links and image paths in wiki markdown files
+        if: steps.clone_wiki.outputs.wiki_available == 'true'
+        run: |
+          find wiki-repo/ -maxdepth 1 -name "*.md" | while read mdfile; do
+            # Reescribir rutas de imágenes: img/archivo.png o ../img/archivo.png -> uploads/archivo.png
+            sed -i -E 's@\((\.\./)*img/([^)]+)\)@(uploads/\2)@g' "$mdfile"
+
+            # Reescribir etiquetas HTML img: src="img/archivo.png" -> src="uploads/archivo.png"
+            sed -i -E 's@src="(\.\./)*img/([^"]+)"@src="uploads/\2"@g' "$mdfile"
+
+            # Reescribir enlaces markdown relativos para estructura plana de Wiki: [Texto](dir/archivo.md) -> [Texto](archivo)
+            sed -i -E 's@(\[[^]]+\])\((\.\./|[a-zA-Z0-9_.-]+/)*([a-zA-Z0-9_.-]+)\.md(#[a-zA-Z0-9_.-]+)?\)@\1(\3\4)@g' "$mdfile"
+
+            echo "Rutas procesadas en: $mdfile"
+          done
+
+      - name: Commit and push to Wiki
+        if: steps.clone_wiki.outputs.wiki_available == 'true'
+        run: |
+          cd wiki-repo
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
+          if git diff --staged --quiet; then
+            echo "No se detectaron cambios en la Wiki. Omitiendo push."
+          else
+            git commit -m "docs(wiki): sync from management/ @ ${{ github.sha }} | by ${{ github.actor }} on ${{ github.ref_name }}"
+            git push origin HEAD
+            echo "Wiki actualizada exitosamente."
+          fi
