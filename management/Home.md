@@ -29,7 +29,7 @@ Este espacio documenta formalmente la planificación, el control integrado de ca
 
 ### 4. Simulación de Caso de Cambio (CR-001)
 - [03-00 Índice de simulación de caso](03-simulacion-cambio/03-00-indice-simulacion.md)
-- [03-01 Ficha de solicitud de cambio CR-001 (Jurisprudencia TC)](03-simulacion-cambio/03-01-solicitud-cambio-cr001.md)
+- [03-01 Ficha de solicitud de cambio CR-001 (Consulta Expedientes CEJ)](03-simulacion-cambio/03-01-solicitud-cambio-cr001.md)
 - [03-02 Evaluación multidimensional de impacto de ingeniería](03-simulacion-cambio/03-02-evaluacion-impacto-cr001.md)
 - [03-03 Acta de resolución y dictamen formal del CCB](03-simulacion-cambio/03-03-acta-resolucion-ccb.md)
 

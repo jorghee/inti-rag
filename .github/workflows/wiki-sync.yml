@@ -60,11 +60,11 @@ jobs:
         if: steps.clone_wiki.outputs.wiki_available == 'true'
         run: |
           find wiki-repo/ -maxdepth 1 -name "*.md" | while read mdfile; do
-            # Reescribir rutas de imágenes: img/archivo.png o ../img/archivo.png -> uploads/archivo.png
-            sed -i -E 's@\((\.\./)*img/([^)]+)\)@(uploads/\2)@g' "$mdfile"
+            # Reescribir rutas de imágenes: img/archivo.png, evidencias/archivo.png -> uploads/archivo.png
+            sed -i -E 's@\((\.\./)*(img|evidencias)/([^)]+)\)@(uploads/\3)@g' "$mdfile"
 
-            # Reescribir etiquetas HTML img: src="img/archivo.png" -> src="uploads/archivo.png"
-            sed -i -E 's@src="(\.\./)*img/([^"]+)"@src="uploads/\2"@g' "$mdfile"
+            # Reescribir etiquetas HTML img: src="img/archivo.png" o src="evidencias/archivo.png" -> src="uploads/archivo.png"
+            sed -i -E 's@src="(\.\./)*(img|evidencias)/([^"]+)"@src="uploads/\3"@g' "$mdfile"
 
             # Reescribir enlaces markdown relativos para estructura plana de Wiki: [Texto](dir/archivo.md) -> [Texto](archivo)
             sed -i -E 's@(\[[^]]+\])\((\.\./|[a-zA-Z0-9_.-]+/)*([a-zA-Z0-9_.-]+)\.md(#[a-zA-Z0-9_.-]+)?\)@\1(\3\4)@g' "$mdfile"
