@@ -82,30 +82,67 @@ flowchart TD
 
 ---
 
-## 4. Criterios de Aceptabilidad de Cambios
+## 4. Criterios de Aceptabilidad y Aprobación de Cambios
 
-Para que una Solicitud de Cambio (CR) de Nivel 3 sea evaluada positivamente por el CCB, debe satisfacer los siguientes **criterios obligatorios de viabilidad**:
+Para que una Solicitud de Cambio (CR) de Nivel 3 sea evaluada y aprobada favorablemente por el CCB, debe satisfacer los siguientes **criterios obligatorios de viabilidad**:
 
 1. **Alineación con la Visión del Producto y Cono de Valor:**
    El cambio debe solucionar una necesidad directa de la comunidad académica de Derecho de la UNSA, contribuyendo a la reducción del tiempo de investigación jurídica o al aseguramiento fáctico de citas normativas.
-2. **Respeto a la Capacidad del Sprint (Principio de Compensación):**
-   Si la solicitud demanda horas de desarrollo que exceden la holgura técnica disponible del sprint objetivo (14 a 20 horas de reserva sobre las 64 horas netas), el solicitante y el Product Owner deben aceptar la aplicación estricta de una **permuta de alcance (*scope swap*)**, retirando del backlog comprometido historias o tareas de valor equivalente de esfuerzo.
+2. **Respeto a la Capacidad del Sprint (Principio de Compensación - Scope Swap):**
+   Si la solicitud demanda horas de desarrollo que exceden la holgura técnica disponible del sprint objetivo (14 a 20 horas de reserva sobre las 64 horas netas), el solicitante y el Product Owner deben aceptar la aplicación estricta de una **permuta de alcance (*scope swap*)**, retirando del backlog comprometido historias o tareas de valor equivalente de esfuerzo para salvaguardar la carga máxima de 16 horas por desarrollador.
 3. **Sostenibilidad Financiera y Arquitectónica:**
-   El cambio no puede comprometer la política de presupuesto de bolsillo (máximo S/. 88.18) ni inducir costos recurrentes de infraestructura que desborden las cuotas del plan gratuito (*Free Tier*) de Supabase, Render, Netlify o Groq, a menos que se apruebe una partida específica de la reserva de contingencia.
+   El cambio no puede comprometer la política de presupuesto de bolsillo (máximo S/. 88.18) ni inducir costos recurrentes de infraestructura que desborden las cuotas del plan gratuito (*Free Tier*) de Supabase, Render, Netlify o Groq, a menos que se apruebe una partida específica de la reserva de contingencia (S/. 30.00).
 4. **Preservación de los Estándares de Calidad RAG:**
    El cambio debe garantizar que no se degradará la similitud semántica por debajo del umbral de $0.75$, que la tasa de alucinación se mantendrá inferior al $5\%$ y que toda respuesta jurídica continuará enlazada al 100% con hipervínculos verificables hacia el portal SPIJ.
 
 ---
 
-## 5. Causales de Rechazo Categórico Invariante
+## 5. Criterios y Causales de Rechazo Categórico Invariante
 
-El Comité de Control de Cambios desestimará de plano, sin necesidad de evaluación de impacto extendida, aquellas solicitudes que incurran en alguna de las siguientes causales:
+El Comité de Control de Cambios desestimará de plano (*Dictamen: Rechazado*), sin posibilidad de reconsideración durante el ciclo de vida del MVP, aquellas solicitudes que incurran en alguna de las siguientes causales:
 
-- **Incurrir en las Exclusiones Invariantes (*Won't Have* — Issue #13):**
-  - Solicitudes para desarrollar aplicaciones móviles nativas (Android/iOS) en lugar de optimizar la interfaz web responsiva (`ADR-005`).
-  - Solicitudes que requieran raspado automatizado del sistema de Consulta de Expedientes Judiciales (CEJ) del Poder Judicial violando barreras Captcha o exigiendo DNI (`ADR-006`).
-  - Requerimientos de OCR sobre resoluciones previas al año 2004 (`ADR-006`).
-- **Sobrecarga de Capacidad sin Compensación:**
-  Cualquier solicitud de incorporación que demande horas hombre adicionales sin proponer qué elementos del alcance se retirarán o pospondrán, violentando el límite de 64 horas por sprint.
-- **Ruptura de la Definición de Terminado (DoD):**
-  Solicitudes que propongan omitir pruebas unitarias, reducir el umbral de cobertura del $80\%$ o prescindir de la revisión por pares con el propósito de acelerar entregas.
+1. **Incurrir en las Exclusiones Invariantes (*Won't Have* — Issue #13):**
+   - Solicitudes para desarrollar aplicaciones móviles nativas (Android/iOS) en lugar de optimizar la interfaz web responsiva (`ADR-005`).
+   - Solicitudes que requieran raspado automatizado del sistema de Consulta de Expedientes Judiciales (CEJ) del Poder Judicial violando barreras Captcha o exigiendo DNI (`ADR-006`).
+   - Requerimientos de OCR sobre resoluciones previas al año 2004 (`ADR-006`).
+2. **Sobrecarga de Capacidad sin Compensación Horaria:**
+   Cualquier solicitud de incorporación que demande horas hombre adicionales sin proponer qué elementos del alcance se retirarán o pospondrán, violentando el límite inamovible de 64 horas netas por sprint para el equipo.
+3. **Ruptura de la Definición de Terminado (DoD):**
+   Solicitudes que propongan omitir pruebas unitarias, reducir el umbral de cobertura automatizada por debajo del $80\%$ o prescindir de la revisión técnica por pares con el propósito de acelerar entregas.
+4. **Activación del Principio de Veto Técnico o Funcional:**
+   Oposición formal y fundamentada del Lead Developer (inviabilidad de infraestructura, latencia inaceptable de Groq API o límites de tokens) o del Product Owner (desviación de la experiencia de usuario o contradicción con el cono de valor legal).
+
+---
+
+## 6. Criterios de Postergación o Diferimiento Formal
+
+El Comité de Control de Cambios dictaminará el aplazamiento planificado (*Dictamen: Pospuesto*) bajo las siguientes condiciones objetivas:
+
+1. **Valor Reconocido pero Perturbación de la Ruta Crítica:**
+   La propuesta aporta un valor académico comprobado, pero su implementación dentro del sprint en curso desestabilizaría el cronograma comprometido para los Milestones del MVP (Sprints 1 a 4).
+2. **Imposibilidad de Scope Swap Inmediato:**
+   El sprint objetivo contiene exclusivamente tareas de la ruta crítica o dependencias arquitectónicas nucleares que no pueden ser retiradas ni intercambiadas sin comprometer la entrega del producto mínimo viable.
+3. **Mecanismo de Diferimiento:**
+   La solicitud no se descarta; se traslada formalmente al Backlog evolutivo de la Fase 2 (Post-MVP) o al Sprint 5 en GitHub Projects, reclasificando la etiqueta a `status:deferred` y ajustando su Milestone correspondiente para su futura priorización sin afectar la iteración activa.
+
+---
+
+## 7. Fundamentos Metodológicos, Técnicas y Herramientas de Sustento
+
+Las decisiones de aceptar, rechazar o diferir cambios no se basan en opiniones subjetivas, sino en la convergencia de enfoques de ingeniería formalmente adoptados:
+
+### 7.1. Metodologías y Marcos de Referencia
+- **Control Integrado de Cambios (PMBOK 7ma Edición & IEEE Std 828-2012):** Estandariza el ciclo de vida del cambio asegurando que ninguna modificación a las cinco líneas base se ejecute sin solicitud formal, evaluación analítica de impacto, dictamen colegiado asentado en acta y actualización formal de planes.
+- **Marco Híbrido Scrumban:** Protege el sprint activo contra interrupciones no planificadas, gestiona el flujo continuo mediante límites WIP y equilibra la capacidad del equipo mediante la técnica de *Scope Swap*.
+
+### 7.2. Técnicas de Análisis y Evaluación
+- **Análisis Multidimensional de Impacto:** Evaluación cuantitativa simultánea sobre alcance (Story Points), tiempo (CPM y capacidad de 64h), costos (consumo de tokens vs. reserva de contingencia de S/. 30.00), recursos (balance de 16h/persona) y calidad/riesgos (umbrales RAG).
+- **Taxonomía por Niveles de Severidad y Riesgo:** Desvío algorítmico mediante árbol de decisión para evitar burocracia en ajustes menores (Nivel 2) y concentrar el rigor colegiado en alteraciones de línea base (Nivel 3).
+- **Gobernanza Colegiada con Doble Veto:** Votación reglamentada con quórum pleno (4/4) y mayoría cualificada ($\ge 3$ votos), respaldada por el derecho de veto técnico y funcional.
+- **Matriz RACI y Compuertas de Calidad:** Asignación inequívoca de responsabilidades en cada fase del flujo, validada por la *Definition of Ready for Change* (DoRC) al inicio y la *Definition of Done* (DoD) al cierre.
+
+### 7.3. Herramientas del Ecosistema GitHub
+- **GitHub Issues:** Punto de captura estructurado mediante la plantilla tipada `.github/ISSUE_TEMPLATE/change_request.yml`.
+- **GitHub Labels:** Taxonomía de etiquetas para rastrear severidad, nivel y estado del flujo (`change:major`, `status:ccb-review`, `status:approved`, etc.).
+- **GitHub Projects (v2) y Milestones:** Tablero Scrumban para gobernanza de estados, control visual de WIP y recalibración de fechas de entrega.
+- **Git Branches efímeras y GitHub Actions CI:** Ramas aisladas `change/CR-XXX-<desc>`, ejecución automatizada de pruebas unitarias (`pytest --cov >= 80%`), linters (`ruff`, `mypy`) y fusión controlada por *Squash and Merge*.
