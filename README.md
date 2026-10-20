@@ -6,9 +6,9 @@
 > * Rodrigo Alexander Fernandez Huarca  
 > * Rafael Diego Nina Calizaya  
 > * Jorge Luis Mamani Huarsaya  
-> * Jhon Alexander Quispe Apaza  
+> * Jhonatan David Arias Quispe  
 > 
-> **Tablero del Proyecto (GitHub Projects):** [Inti - Asistente Jurídico (Kanban & Backlog)](https://github.com/users/JhonAQ/projects/6)
+> **Tablero del Proyecto (GitHub Projects):** [Inti - Asistente Jurídico (Kanban & Backlog)](https://github.com/users/jorghee/projects/3)
 
 ---
 

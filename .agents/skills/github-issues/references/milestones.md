@@ -103,8 +103,17 @@ gh api repos/{owner}/{repo}/milestones/{milestone_number} \
 ## Usage Rules
 
 - Use milestone numbers for API operations.
-- A milestone groups work; it does not define issue execution order.
+- A milestone groups work into delivery stages; it does not define individual issue execution order.
 - Use native issue dependencies for execution ordering.
 - Do not infer dependencies merely because issues belong to the same milestone.
 - Listing a milestone for an automated workflow should include all open and
   closed issues unless the caller explicitly requests otherwise.
+
+## Conceptual Distinction: Milestones vs. Sprints (8-Week Horizon)
+
+- **Milestones (PMBOK / Product Delivery Gates):** Represent contractual delivery stages across the 8-week course lifecycle:
+  - `M1: Ingestion & Auth Foundation (Semanas 1-2)` (Due: 2026-10-17)
+  - `M2: Vector Storage & Session History (Semanas 3-4)` (Due: 2026-10-31)
+  - `M3: Core RAG Engine & Responsive UI (Semanas 5-6)` (Due: 2026-11-14)
+  - `M4: Traceable Citations & Final Academic MVP (Semanas 7-8)` (Due: 2026-11-28)
+- **Sprints (Scrum Iterations):** Represent 2-week execution timeboxes (`Sprint 1` to `Sprint 4` plus `Product Backlog`). Sprints are tracked and managed in **GitHub Projects** using the `Sprint` field, not as GitHub Milestones.

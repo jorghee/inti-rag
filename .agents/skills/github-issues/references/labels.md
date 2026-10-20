@@ -1,103 +1,51 @@
-# Project Labels Taxonomy
+# Project Labels Taxonomy (Simplified Architecture)
 
-This reference defines the standardized label taxonomy used in the Inti Legal RAG repository. Always inspect existing repository labels before creating new ones to maintain taxonomy integrity.
+This reference defines the standardized, non-redundant label taxonomy used in the Inti Legal RAG repository.
 
 ---
 
-## 1. MoSCoW Priority Labels
+## 1. Architectural Separation: Labels vs. Project Fields
 
-Defines functional requirement importance as established in academic deliverables and agile planning.
+To prevent visual clutter, badge saturation, and metadata desynchronization, the project enforces a strict boundary between issue labels and GitHub Projects planning fields:
+
+| Dimension | Managed In | Values / Format | Rationale |
+|---|---|---|---|
+| **Artifact Nature** | **Issue Labels (`type:*`)** | `type: user-story`, `type: technical-task`, `type: epic` | Identifies whether the issue is an agile value story, an engineering task, or an architectural epic. |
+| **Architectural Module** | **Issue Labels (`component:*`)** | `component: backend`, `component: frontend`, `component: ingestion`, `component: rag-engine`, `component: database` | Identifies the codebase subsystem impacted. Invariant across sprints. |
+| **MoSCoW Priority** | **GitHub Projects Field (`MoSCoW`)** | `Must Have`, `Should Have`, `Could Have`, `Won't Have` | Product Owner release planning attribute. Managed in the project board to avoid label bloat. |
+| **Effort Sizing** | **GitHub Projects Field (`Story Points`)** | Numeric Fibonacci (`3`, `5`, `8`, `13`) | Relative effort sizing strictly for User Stories. Supports column summing and board aggregation. |
+| **Iteration Cadence** | **GitHub Projects Field (`Sprint`)** | `Sprint 1` through `Sprint 6`, `Product Backlog` | Timeboxed execution window. Updated via project board views. |
+| **Execution Flow** | **GitHub Projects Fields (`Status` & `Kanban Column`)** | `Todo`, `In Progress`, `Review`, `Done` | Dynamic workflow states with WIP limits and automated PR transitions. |
+| **Delivery Milestones** | **GitHub Milestones (`Milestone`)** | `M1` through `M4` | Contractual delivery gates mapped across 12 academic weeks. |
+
+---
+
+## 2. Active Repository Labels
+
+### A. Issue Type Labels (`type:*`)
+Categorizes the nature and granularity of the deliverable:
 
 | Label | Color | Description | Usage |
 |---|---|---|---|
-| `priority: must-have` | `B60205` | Non-negotiable scope for MVP delivery (39 SP total) | Mandatory for Core MVP stories |
-| `priority: should-have` | `D93F0B` | High priority; to be incorporated if capacity allows (19 SP) | Sprint 2 candidates |
-| `priority: could-have` | `FBCA04` | Desirable features; included only if time permits (16 SP) | Post-MVP backlog |
-| `priority: wont-have` | `6A737D` | Explicitly excluded from MVP scope (e.g. mobile app, CEJ scraping) | Out of scope / ADR rejected |
+| `type: user-story` | `#5319E7` | Functional User Story (`HU-XX`) delivering end-user legal value | Backlog user stories (sized in Story Points) |
+| `type: technical-task` | `#1D76DB` | Atomic technical task (`TASK-XX.Y`) contributing to a story | Engineering implementation (sized in hours) |
+| `type: epic` | `#3E4B9E` | High-level system module or cross-cutting scope container | Architectural and boundary specifications (e.g. #13) |
 
----
+### B. Component Labels (`component:*`)
+Identifies the technical subsystem impacted:
 
-## 2. Issue Type Labels
-
-Categorizes the nature of the issue across personal and organizational repositories.
-
-| Label | Color | Description | Usage |
+| Label | Color | Description | Architectural Scope |
 |---|---|---|---|
-| `type: story` | `0E8A16` | Functional User Story (`HU-XX`) delivering student value | Backlog user stories |
-| `type: task` | `1D76DB` | Atomic technical task (`TASK-XX.Y`) contributing to a story | Engineering implementation |
-| `type: bug` | `D73A4A` | Defect, unexpected behavior, or regression | Defect tracking |
-| `type: chore` | `C5DEF5` | Maintenance, configuration, or operational updates | Tooling / repo maintenance |
-| `type: spike` | `5319E7` | Timeboxed research or technical proof-of-concept | Architecture exploration |
+| `component: backend` | `#1D76DB` | FastAPI API endpoints, JWT auth, business logic, pytest test suite | `backend/` |
+| `component: frontend` | `#7057FF` | Responsive web UI, CSS layout, client-side session and stream reader | `frontend/`, web assets |
+| `component: ingestion` | `#006B75` | Legal norm scraping, text normalization, regex hierarchical parser | `ingestion/` |
+| `component: rag-engine` | `#B60205` | Vector retrieval, prompt synthesis, LlamaIndex, Groq Llama 3.3 | RAG orchestrator |
+| `component: database` | `#008672` | PostgreSQL schema, Supabase DDL, pgvector HNSW indexes, RLS policies | Database migrations |
 
 ---
 
-## 3. Component Labels
+## 3. Label Usage Standards
 
-Identifies the architectural tier or domain module impacted by the change.
-
-| Label | Color | Description |
-|---|---|---|
-| `component: auth` | `BFD4F2` | Supabase Auth, JWT verification, institutional domain filter (`@unsa.edu.pe`) |
-| `component: ingestion` | `D4C5F9` | Legal scrapers, SPIJ ingestion, structural hierarchy chunking |
-| `component: rag` | `1D76DB` | Vector retrieval, cosine similarity, prompt augmentation, Groq LLM inference |
-| `component: citations` | `006B75` | Hyperlinked statutory citations, official portal linking, grounding audit |
-| `component: frontend` | `0E8A16` | Responsive web interface, chat stream rendering, citation modals |
-| `component: docs` | `0075CA` | Technical documentation, architecture decisions, requirements matrix |
-| `component: infra` | `F9D0C4` | Database migrations, pgvector configuration, CI/CD pipelines |
-
----
-
-## 4. Status Labels (Scrumban Workflow)
-
-Tracks progress across development lifecycle states with Kanban WIP limits.
-
-| Label | Color | Description | WIP Policy |
-|---|---|---|---|
-| `status: backlog` | `E4E669` | Prioritized item awaiting sprint commitment | Uncapped |
-| `status: in-progress` | `FEF2C0` | Active implementation currently underway | **Strict Limit: Max 4** |
-| `status: in-review` | `BFDADC` | Pull Request open, peer review or CI verification active | **Strict Limit: Max 3** |
-| `status: done` | `0E8A16` | Fully implemented, merged into main, DoD verified | Closed issues |
-| `status: blocked` | `D93F0B` | Impediment preventing progress; requires escalation | Zero tolerance; resolve ASAP |
-
----
-
-## 5. Story Points Estimation Labels
-
-Fibonacci point values assigned to User Stories during agile planning.
-
-| Label | Color | Estimated Effort / Complexity |
-|---|---|---|
-| `points: 1` | `C2E0C6` | Trivial change or minor parameter update |
-| `points: 2` | `A2D4AB` | Small task, clear implementation pattern |
-| `points: 3` | `70C180` | Moderate task, standard service endpoint |
-| `points: 5` | `37A755` | Significant story, multiple components |
-| `points: 8` | `1B8738` | Complex story, deep integration (e.g., RAG pipeline) |
-| `points: 13` | `0C5922` | Maximum story size; recommend decomposing into sub-tasks |
-
----
-
-## 6. GitHub CLI Commands for Label Management
-
-### List Current Repository Labels
-```bash
-gh label list --limit 100
-```
-
-### Create or Update a Label
-```bash
-gh label create "priority: must-have" --color "B60205" --description "Must-have MVP feature" --force
-```
-
-### Apply Labels to an Issue
-```bash
-gh issue edit <issue-number> \
-  --add-label "type: story" \
-  --add-label "priority: must-have" \
-  --add-label "component: rag" \
-  --add-label "points: 8"
-```
-
-### Remove a Label from an Issue
-```bash
-gh issue edit <issue-number> --remove-label "status: in-progress"
-```
+1. **Max 2 labels per issue:** Every issue should carry exactly one `type:` label and one `component:` label (e.g., `type: user-story` + `component: rag-engine`).
+2. **Zero duplicate planning labels:** Never create or re-introduce labels for priorities (`priority:*`), story points (`points:*`), or workflow states (`status:*`). These attributes are maintained exclusively in GitHub Projects fields.
+3. **Repository Label List:** Standard repository maintenance labels (`bug`, `documentation`, `duplicate`, `enhancement`, `good first issue`, `help wanted`, `invalid`, `question`, `wontfix`) are reserved for ad-hoc repository maintenance and CI/triage.

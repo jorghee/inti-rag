@@ -270,4 +270,25 @@ gh api graphql -f query='mutation {
   }) { projectV2Item { id } }
 }'
 ```
-```
+
+---
+
+## Inti Project Configuration (Reference)
+
+- **Project Number:** `3` (Owner: `jorghee`, Title: `Inti - Asistente Jurídico (Kanban & Backlog)`)
+- **Direct URL:** `https://github.com/users/jorghee/projects/3`
+- **Node ID:** `PVT_kwHOCdaO6c4Bn19J`
+- **Repository Link:** Linked directly to `jorghee/inti-rag` (`R_kgDOVAGxFA`)
+
+### Custom Planning Fields
+- **`Status` (`PVTSSF_lAHOCdaO6c4Bn19JzhmYuCs`):** `Backlog`, `Sprint Backlog`, `In Progress`, `Review` (PR opened and pending code review), `Done` (Merged / Closed). Single unified workflow status driving board columns.
+- **`Sprint` (`PVTSSF_lAHOCdaO6c4Bn19JzhmYue0`):** `Sprint 1 (Weeks 1-2)`, `Sprint 2 (Weeks 3-4)`, `Sprint 3 (Weeks 5-6)`, `Sprint 4 (Weeks 7-8)`, `Product Backlog` (8-week course lifecycle).
+- **`MoSCoW` (`PVTSSF_lAHOCdaO6c4Bn19JzhmYuWM`):** `Must Have`, `Should Have`, `Could Have`, `Won't Have`.
+- **`Story Points` (`PVTF_lAHOCdaO6c4Bn19JzhmYuZY`):** Sizing applied strictly to User Stories.
+
+### Configured Views
+1. **`Planificación de Sprints y Backlog` (Table - `PVTV_lAHOCdaO6c4Bn19JzgMJRJY`):** Backlog prioritization and iteration planning. Visible columns: `Title`, `Assignees`, `Status`, `Labels`, `Milestone`, `MoSCoW`, `Story Points`, `Sprint`.
+2. **`Tablero Scrumban (WIP Limits)` (Board - `PVTV_lAHOCdaO6c4Bn19JzgMJRdA`):** 5-column execution flow (`Backlog`, `Sprint Backlog`, `In Progress`, `Review`, `Done`) with cards showing `Assignees`, `Status`, `Labels`, `Milestone`, `MoSCoW`, `Story Points`, `Sprint`.
+3. **`Hitos y Entregables (Milestones M1-M4)` (Table - `PVTV_lAHOCdaO6c4Bn19JzgMJRdc`):** Delivery stage roadmap mapped to milestones. Visible columns: `Title`, `Assignees`, `Status`, `Labels`, `Milestone`, `MoSCoW`, `Story Points`, `Sprint`.
+4. **`Sprint 1 (En Curso)` (Table - `PVTV_lAHOCdaO6c4Bn19JzgMJRxM`):** Filtered execution view for current sprint (`sprint:"Sprint 1 (Weeks 1-2)"`). Visible columns: `Title`, `Assignees`, `Status`, `Labels`, `Milestone`, `Story Points`.
+5. **`Trabajo Activo (Pendiente y En Curso)` (Table - `PVTV_lAHOCdaO6c4Bn19JzgMJRxk`):** Work-in-progress overview excluding completed items (`filter: -status:Done`). Visible columns: `Title`, `Assignees`, `Status`, `Labels`, `Milestone`, `MoSCoW`, `Story Points`, `Sprint`.

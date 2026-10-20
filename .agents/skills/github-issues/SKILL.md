@@ -59,14 +59,11 @@ gh api repos/{owner}/{repo}/issues/{number}/labels -X PUT -f 'labels[]=type: sto
 - **Documentation / Chore**: `docs: <Documentation deliverable>` or `chore: <Maintenance task>`
 
 ### Label Strategy
-Do not rely on proprietary or organization-exclusive metadata. Categorize all issues through standard GitHub labels:
-- **Type**: `type: story`, `type: task`, `type: bug`, `type: chore`, `type: spike`
-- **Priority**: `priority: must-have`, `priority: should-have`, `priority: could-have`, `priority: wont-have`
-- **Component**: `component: auth`, `component: ingestion`, `component: rag`, `component: citations`, `component: frontend`, `component: docs`, `component: infra`
-- **Status**: `status: backlog`, `status: in-progress`, `status: in-review`, `status: done`, `status: blocked`
-- **Points**: `points: 1`, `points: 2`, `points: 3`, `points: 5`, `points: 8`, `points: 13`
+Maintain a clean, non-redundant label taxonomy. Issues carry strictly two label categories:
+- **Type**: `type: user-story`, `type: technical-task`, `type: epic`
+- **Component**: `component: backend`, `component: frontend`, `component: ingestion`, `component: rag-engine`, `component: database`
 
-Consult [`references/labels.md`](references/labels.md) for the complete reference table.
+Planning, sizing, and execution metrics (`MoSCoW`, `Story Points`, `Sprint`, `Status`, `Kanban Column`) are managed exclusively in **GitHub Projects** fields, preventing metadata duplication and label clutter. Consult [`references/labels.md`](references/labels.md) for details.
 
 ---
 
@@ -75,46 +72,46 @@ Consult [`references/labels.md`](references/labels.md) for the complete referenc
 ### Creating a User Story
 1. Gather story context and acceptance criteria from the target user story definition, backlog planning, or project requirements.
 2. Populate the User Story template from [`references/templates.md`](references/templates.md).
-3. Execute `gh issue create`:
+3. Execute `gh issue create` and link to project:
 
 ```bash
 gh issue create \
-  --title "[HU-01] Motor RAG de consulta jurídica con recuperación semántica" \
+  --title "[HU-01] Consulta en lenguaje natural con respuesta contextualizada" \
   --body-file .agents/plans/hu-01-body.md \
-  --label "type: story" \
-  --label "priority: must-have" \
-  --label "component: rag" \
-  --label "points: 8" \
-  --label "status: backlog"
+  --label "type: user-story" \
+  --label "component: rag-engine"
+
+# Add to GitHub Projects and configure planning fields
+gh project item-add 3 --owner jorghee --url "<issue-url>"
+gh project item-edit 3 --owner jorghee --url "<issue-url>" --field "MoSCoW" --value "Must Have"
+gh project item-edit 3 --owner jorghee --url "<issue-url>" --field "Story Points" --number 8
+gh project item-edit 3 --owner jorghee --url "<issue-url>" --field "Sprint" --value "Sprint 3 (Weeks 5-6)"
 ```
 
 ### Creating an Atomic Technical Task
-1. Verify the parent User Story number (e.g. `#1`).
+1. Verify the parent User Story number (e.g. `#5`).
 2. Populate the Technical Task template with technical scope and hourly estimation ($\le 8$ hours).
-3. Execute `gh issue create`:
+3. Execute `gh issue create` and link to project:
 
 ```bash
 gh issue create \
-  --title "[TASK-01.1] Implementar retriever de pgvector con umbral 0.75" \
-  --body-file .agents/plans/task-01.1-body.md \
-  --label "type: task" \
-  --label "component: rag" \
-  --label "status: backlog"
+  --title "[TASK-05.2] Endpoints de Registro y Login con JWT en FastAPI" \
+  --body-file .agents/plans/task-05.2-body.md \
+  --label "type: technical-task" \
+  --label "component: backend"
+
+# Add to GitHub Projects and configure sprint
+gh project item-add 3 --owner jorghee --url "<issue-url>"
+gh project item-edit 3 --owner jorghee --url "<issue-url>" --field "Sprint" --value "Sprint 1 (Weeks 1-2)"
+gh project item-edit 3 --owner jorghee --url "<issue-url>" --field "Kanban Column" --value "Sprint Backlog"
 ```
 
 ### Transitioning Task Status (WIP Policy)
-Before moving an issue to `status: in-progress`:
-1. Check current WIP count:
-   ```bash
-   gh issue list --label "status: in-progress" --state open --json number | jq '. | length'
-   ```
-2. If count $\ge 4$, do not transition until an existing task is moved to `in-review` or `done`.
-3. Apply status transition:
-   ```bash
-   gh issue edit <number> \
-     --remove-label "status: backlog" \
-     --add-label "status: in-progress"
-   ```
+Update item status directly in GitHub Projects (or via PR automation):
+```bash
+gh project item-edit 3 --owner jorghee --url "<issue-url>" --field "Status" --value "In Progress"
+gh project item-edit 3 --owner jorghee --url "<issue-url>" --field "Kanban Column" --value "In Progress"
+```
 
 ---
 
@@ -123,7 +120,7 @@ Before moving an issue to `status: in-progress`:
 For detailed guidelines on advanced features, consult the dedicated references:
 - [`references/templates.md`](references/templates.md): Full markdown templates for User Stories, Technical Tasks, Bugs, and Chores.
 - [`references/labels.md`](references/labels.md): Hex colors, descriptions, and rules for repository labels.
-- [`references/milestones.md`](references/milestones.md): Managing Sprint milestones (`Sprint 1`, `Sprint 2`).
+- [`references/milestones.md`](references/milestones.md): Managing Project Delivery Milestones (`M1`, `M2`, `M3`, `M4`).
 - [`references/dependencies.md`](references/dependencies.md): Tracking blocking and blocked-by relationships between tasks.
 - [`references/sub-issues.md`](references/sub-issues.md): Linking atomic tasks to parent stories.
 - [`references/projects.md`](references/projects.md): Syncing issues with GitHub Projects boards.
