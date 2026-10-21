@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "inti-rag"
 version = "0.1.0"
-description = "Inti - Intelligent Legal Assistant powered by RAG architecture for UNSA law students"
+description = "Asistente Juridico Inteligente para la Universidad Nacional de San Agustin (UNSA)"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
@@ -39,29 +39,16 @@ dev = [
 include = ["backend*", "ingestion*"]
 
 [tool.ruff]
-target-version = "py311"
 line-length = 100
-src = ["backend", "ingestion", "tests"]
+target-version = "py311"
 
 [tool.ruff.lint]
-select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # pyflakes
-    "I",    # isort
-    "N",    # pep8-naming
-    "UP",   # pyupgrade
-    "B",    # flake8-bugbear
-    "SIM",  # flake8-simplify
-    "RUF",  # ruff-specific rules
-]
+select = ["E", "F", "I", "W"]
+ignore = []
 
 [tool.ruff.lint.per-file-ignores]
 "tests/fixtures/*" = ["E501"]
 "tests/unit/test_chunker.py" = ["E501"]
-
-[tool.ruff.lint.isort]
-known-first-party = ["backend", "ingestion"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -69,7 +56,3 @@ addopts = "-ra -q"
 testpaths = ["tests"]
 pythonpath = ["."]
 asyncio_mode = "auto"
-markers = [
-    "unit: Unit tests (fast, no external dependencies)",
-    "integration: Integration tests (may require database or network)",
-]
