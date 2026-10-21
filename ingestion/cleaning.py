@@ -87,9 +87,9 @@ _MULTI_BLANK_LINES = re.compile(r"\n{3,}")
 _HORIZONTAL_WHITESPACE = re.compile(r"[^\S\n]+")
 
 # Pre-compiled regex for normalizing article markers to a consistent format.
-# Matches patterns like "Artículo  1 .-", "Articulo 1.-", "ARTÍCULO 1.-"
+# Matches patterns like "Artículo  1 .-", "Articulo 1.-", "ARTÍCULO 1.-", "Articulo I.-"
 _ARTICLE_MARKER = re.compile(
-    r"(?i)(art[ií]culo)\s+(\d+[A-Za-z]?)\s*[\.\-]+\s*",
+    r"(?i)(art[ií]culo)\s+(\d+[A-Za-z]?|[IVXLCDM]+)\s*[\.\-]+\s*",
 )
 
 # Pre-compiled regex for structural heading markers (LIBRO, TITULO, etc.)
