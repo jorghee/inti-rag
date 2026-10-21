@@ -4,7 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.api.v1.api import api_router
@@ -40,7 +40,7 @@ if FRONTEND_DIR.is_dir():
         """Redirect root requests to frontend login interface."""
         index_file = FRONTEND_DIR / "index.html"
         if index_file.is_file():
-            return FileResponse(str(index_file))
+            return RedirectResponse(url="/static/index.html")
         return RedirectResponse(url="/docs")
 else:
 
