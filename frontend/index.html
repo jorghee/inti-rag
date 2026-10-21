@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso Institucional — Inti Asistente Jurídico (UNSA)</title>
+  <meta name="description" content="Portal de autenticación institucional de Inti, asistente jurídico basado en RAG para la Facultad de Derecho de la Universidad Nacional de San Agustín.">
+  
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+
+  <main class="auth-container" role="main">
+    
+    <!-- Encabezado Institucional -->
+    <header class="auth-header">
+      <div class="auth-brand-logo" data-icon="scale" aria-hidden="true"></div>
+      <h1 class="auth-title">Inti Asistente Jurídico</h1>
+      <p class="auth-subtitle">Facultad de Derecho — Universidad Nacional de San Agustín</p>
+    </header>
+
+    <!-- Banner Global de Notificaciones (Éxito / Error) -->
+    <div id="global-alert" class="alert-banner" role="alert" aria-live="polite"></div>
+
+    <!-- Navegación de Pestañas (Tabs) -->
+    <nav class="auth-tabs" role="tablist" aria-label="Opciones de Acceso">
+      <button 
+        type="button" 
+        id="tab-login" 
+        class="tab-btn active" 
+        role="tab" 
+        aria-selected="true" 
+        aria-controls="panel-login">
+        Iniciar Sesión
+      </button>
+      <button 
+        type="button" 
+        id="tab-register" 
+        class="tab-btn" 
+        role="tab" 
+        aria-selected="false" 
+        aria-controls="panel-register">
+        Crear Cuenta
+      </button>
+    </nav>
+
+    <!-- Pestaña 1: Iniciar Sesión -->
+    <section id="panel-login" class="auth-panel active" role="tabpanel" aria-labelledby="tab-login">
+      <form id="form-login" novalidate>
+        
+        <div class="form-group">
+          <label for="login-email" class="form-label">Correo Institucional</label>
+          <div class="input-wrapper">
+            <span class="input-prefix-icon" data-icon="mail" aria-hidden="true"></span>
+            <input 
+              type="email" 
+              id="login-email" 
+              name="email" 
+              class="form-input" 
+              placeholder="estudiante@unsa.edu.pe" 
+              autocomplete="username" 
+              required>
+          </div>
+          <div class="field-error-msg" id="login-email-error" aria-live="polite"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="login-password" class="form-label">Contraseña</label>
+          <div class="input-wrapper">
+            <span class="input-prefix-icon" data-icon="lock" aria-hidden="true"></span>
+            <input 
+              type="password" 
+              id="login-password" 
+              name="password" 
+              class="form-input" 
+              placeholder="••••••••" 
+              autocomplete="current-password" 
+              required>
+            <button 
+              type="button" 
+              class="btn-toggle-password" 
+              data-target="login-password">
+            </button>
+          </div>
+          <div class="field-error-msg" id="login-password-error" aria-live="polite"></div>
+        </div>
+
+        <div class="form-utilities">
+          <label class="checkbox-label">
+            <input type="checkbox" id="remember-me" name="remember">
+            <span>Recordar dispositivo</span>
+          </label>
+          <a href="#recuperar" class="auth-link" id="link-forgot-password">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <span>Iniciar Sesión</span>
+        </button>
+
+        <footer class="auth-footer">
+          <span>¿Aún no tienes cuenta institucional? </span>
+          <a href="#registro" class="auth-link" data-switch-tab="register">Regístrate aquí</a>
+        </footer>
+
+      </form>
+    </section>
+
+    <!-- Pestaña 2: Crear Cuenta Institucional -->
+    <section id="panel-register" class="auth-panel" role="tabpanel" aria-labelledby="tab-register">
+      <form id="form-register" novalidate>
+
+        <div class="form-group">
+          <label for="reg-name" class="form-label">Nombres y Apellidos</label>
+          <div class="input-wrapper">
+            <span class="input-prefix-icon" data-icon="user" aria-hidden="true"></span>
+            <input 
+              type="text" 
+              id="reg-name" 
+              name="name" 
+              class="form-input" 
+              placeholder="Rodrigo Alexander Fernandez" 
+              autocomplete="name" 
+              required>
+          </div>
+          <div class="field-error-msg" id="reg-name-error" aria-live="polite"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-email" class="form-label">Correo Institucional UNSA</label>
+          <div class="input-wrapper">
+            <span class="input-prefix-icon" data-icon="mail" aria-hidden="true"></span>
+            <input 
+              type="email" 
+              id="reg-email" 
+              name="email" 
+              class="form-input" 
+              placeholder="usuario@unsa.edu.pe" 
+              autocomplete="email" 
+              required>
+          </div>
+          <div class="field-error-msg" id="reg-email-error" aria-live="polite"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-role" class="form-label">Rol Académico</label>
+          <div class="input-wrapper">
+            <select id="reg-role" name="role" class="form-select" required>
+              <option value="" disabled selected>Seleccione su rol en la facultad</option>
+              <option value="student">Estudiante de Pregrado (Derecho)</option>
+              <option value="docent">Docente / Catedrático</option>
+              <option value="researcher">Investigador / Egresado</option>
+            </select>
+          </div>
+          <div class="field-error-msg" id="reg-role-error" aria-live="polite"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-password" class="form-label">Contraseña</label>
+          <div class="input-wrapper">
+            <span class="input-prefix-icon" data-icon="lock" aria-hidden="true"></span>
+            <input 
+              type="password" 
+              id="reg-password" 
+              name="password" 
+              class="form-input" 
+              placeholder="Mínimo 8 caracteres" 
+              autocomplete="new-password" 
+              required>
+            <button 
+              type="button" 
+              class="btn-toggle-password" 
+              data-target="reg-password">
+            </button>
+          </div>
+          
+          <!-- Requisitos Dinámicos de Contraseña -->
+          <div class="password-requirements">
+            <div class="requirements-title">Requisitos mínimos de seguridad:</div>
+            <div class="requirement-item" id="req-len">
+              <span class="req-icon" data-icon="alertCircle"></span>
+              <span>Al menos 8 caracteres</span>
+            </div>
+            <div class="requirement-item" id="req-upper">
+              <span class="req-icon" data-icon="alertCircle"></span>
+              <span>Al menos una letra mayúscula</span>
+            </div>
+            <div class="requirement-item" id="req-num">
+              <span class="req-icon" data-icon="alertCircle"></span>
+              <span>Al menos un número</span>
+            </div>
+            <div class="requirement-item" id="req-special">
+              <span class="req-icon" data-icon="alertCircle"></span>
+              <span>Al menos un símbolo o carácter especial</span>
+            </div>
+          </div>
+          <div class="field-error-msg" id="reg-password-error" aria-live="polite"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="reg-password-confirm" class="form-label">Confirmar Contraseña</label>
+          <div class="input-wrapper">
+            <span class="input-prefix-icon" data-icon="lock" aria-hidden="true"></span>
+            <input 
+              type="password" 
+              id="reg-password-confirm" 
+              name="password_confirm" 
+              class="form-input" 
+              placeholder="Reingrese su contraseña" 
+              autocomplete="new-password" 
+              required>
+            <button 
+              type="button" 
+              class="btn-toggle-password" 
+              data-target="reg-password-confirm">
+            </button>
+          </div>
+          <div class="field-error-msg" id="reg-password-confirm-error" aria-live="polite"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="reg-terms" name="terms" required>
+            <span>Acepto el uso ético y académico de la plataforma para fines de investigación jurídica.</span>
+          </label>
+          <div class="field-error-msg" id="reg-terms-error" aria-live="polite"></div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <span>Crear Cuenta</span>
+        </button>
+
+        <footer class="auth-footer">
+          <span>¿Ya tienes una cuenta registrada? </span>
+          <a href="#login" class="auth-link" data-switch-tab="login">Inicia sesión</a>
+        </footer>
+
+      </form>
+    </section>
+
+  </main>
+
+  <!-- Módulos JavaScript -->
+  <script type="module" src="js/auth-validation.js"></script>
+</body>
+</html>
