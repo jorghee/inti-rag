@@ -46,3 +46,7 @@ coverage.xml
 *.swo
 .DS_Store
 Thumbs.db
+
+# Ingestion runtime downloads
+data/
+
