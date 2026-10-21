@@ -1,6 +1,16 @@
 import { Icons } from './icons.js';
+import { ApiClient } from './api-client.js';
+import { AuthSession } from './auth-session.js';
+
+let switchTabFn = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Redirección si ya cuenta con una sesión activa vigente
+  if (AuthSession.isAuthenticated()) {
+    window.location.replace('dashboard.html');
+    return;
+  }
+
   // Inicialización de iconos en el DOM
   initStaticIcons();
 
@@ -10,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Control de visibilidad de contraseñas (Toggle Password)
   initPasswordToggles();
 
-  // Validaciones en tiempo real
+  // Validaciones y conexión con el API Client
   initLoginFormValidation();
   initRegisterFormValidation();
 });
@@ -60,6 +70,8 @@ function initTabSwitching() {
     }
   }
 
+  switchTabFn = switchTab;
+
   tabLogin?.addEventListener('click', () => switchTab('login'));
   tabRegister?.addEventListener('click', () => switchTab('register'));
 
@@ -105,7 +117,7 @@ function initPasswordToggles() {
 const UNSA_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@unsa\.edu\.pe$/;
 
 /**
- * Validación y submit del Formulario de Login
+ * Validación y submit del Formulario de Login conectado a ApiClient y AuthSession (TASK-05.4)
  */
 function initLoginFormValidation() {
   const form = document.getElementById('form-login');
@@ -113,6 +125,7 @@ function initLoginFormValidation() {
 
   const emailInput = document.getElementById('login-email');
   const passInput = document.getElementById('login-password');
+  const rememberCheckbox = document.getElementById('remember-me');
   const alertBanner = document.getElementById('global-alert');
   const submitBtn = form.querySelector('.btn-submit');
 
@@ -122,7 +135,7 @@ function initLoginFormValidation() {
   passInput?.addEventListener('input', () => validateRequiredField(passInput, 'Ingrese su contraseña'));
   passInput?.addEventListener('blur', () => validateRequiredField(passInput, 'Ingrese su contraseña'));
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearAlert(alertBanner);
 
@@ -134,22 +147,48 @@ function initLoginFormValidation() {
       return;
     }
 
-    // Simulación de Estado de Carga (Preparado para conexión API TASK-05.4)
     setButtonLoading(submitBtn, true, 'Iniciando sesión...');
 
-    setTimeout(() => {
+    try {
+      const email = emailInput.value.trim();
+      const password = passInput.value;
+      const remember = rememberCheckbox ? rememberCheckbox.checked : true;
+
+      // Consumo de endpoint POST /api/v1/auth/login con fallback mock
+      const sessionData = await ApiClient.login({ email, password });
+
+      // Persistencia segura de sesión
+      AuthSession.saveSession({
+        accessToken: sessionData.access_token,
+        user: sessionData.user,
+        expiresIn: sessionData.expires_in,
+        remember
+      });
+
+      showAlert(
+        alertBanner,
+        `¡Bienvenido(a), ${sessionData.user.full_name}! Redirigiendo al Asistente Jurídico...`,
+        'success'
+      );
+
+      // Redirección suave al Dashboard
+      setTimeout(() => {
+        window.location.replace('dashboard.html');
+      }, 750);
+
+    } catch (err) {
       setButtonLoading(submitBtn, false, 'Iniciar Sesión');
       showAlert(
         alertBanner,
-        'Credenciales validadas localmente. Conexión lista para FastAPI / Supabase (TASK-05.4).',
-        'success'
+        err.detail || err.message || 'Error en las credenciales o servidor no disponible.',
+        'error'
       );
-    }, 1200);
+    }
   });
 }
 
 /**
- * Validación y submit del Formulario de Registro
+ * Validación y submit del Formulario de Registro conectado a ApiClient (TASK-05.4)
  */
 function initRegisterFormValidation() {
   const form = document.getElementById('form-register');
@@ -204,7 +243,7 @@ function initRegisterFormValidation() {
     }
   });
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearAlert(alertBanner);
 
@@ -224,19 +263,52 @@ function initRegisterFormValidation() {
       return;
     }
 
-    // Simulación de Estado de Carga
-    setButtonLoading(submitBtn, true, 'Registrando cuenta...');
+    setButtonLoading(submitBtn, true, 'Registrando cuenta institucional...');
 
-    setTimeout(() => {
+    try {
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim();
+      const role = roleSelect.value;
+      const password = passInput.value;
+
+      // Consumo de endpoint POST /api/v1/auth/register con fallback mock
+      const registered = await ApiClient.register({
+        email,
+        password,
+        full_name: name,
+        role
+      });
+
       setButtonLoading(submitBtn, false, 'Crear Cuenta');
       showAlert(
         alertBanner,
-        `¡Registro simulado con éxito para ${emailInput.value}! Se enviará un correo de confirmación (HU-05).`,
+        `¡Cuenta creada exitosamente para ${registered.email}! Proceda a iniciar sesión.`,
         'success'
       );
+
       form.reset();
       resetPasswordRequirements();
-    }, 1500);
+
+      // Transición automática a la pestaña de inicio de sesión
+      setTimeout(() => {
+        if (switchTabFn) {
+          switchTabFn('login');
+          const loginEmail = document.getElementById('login-email');
+          if (loginEmail) {
+            loginEmail.value = registered.email;
+            document.getElementById('login-password')?.focus();
+          }
+        }
+      }, 1200);
+
+    } catch (err) {
+      setButtonLoading(submitBtn, false, 'Crear Cuenta');
+      showAlert(
+        alertBanner,
+        err.detail || err.message || 'Error al procesar el registro.',
+        'error'
+      );
+    }
   });
 }
 
