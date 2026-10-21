@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inti-rag"
+version = "0.1.0"
+description = "Asistente Juridico Inteligente para la Universidad Nacional de San Agustin (UNSA)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    { name = "RodrigoAlexander", email = "ralexander@unsa.edu.pe" },
+    { name = "Jorge Luis", email = "jorghee@unsa.edu.pe" },
+    { name = "Jhonatan David Arias Quispe", email = "jariasq@unsa.edu.pe" },
+    { name = "Rafael Diego Nina Calizaya", email = "rnina@unsa.edu.pe" }
+]
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.28.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+    "pyjwt[crypto]>=2.8.0",
+    "bcrypt>=4.1.2",
+    "httpx>=0.27.0",
+    "python-multipart>=0.0.9"
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = []
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+pythonpath = ["."]
