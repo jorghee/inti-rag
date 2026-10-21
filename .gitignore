@@ -51,4 +51,4 @@ coverage.xml
 Thumbs.db
 
 # Data snapshots (large raw files)
-data/raw/
+data/
