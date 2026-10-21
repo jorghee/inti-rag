@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Espacio de Trabajo — Inti Asistente Jurídico (UNSA)</title>
+  <meta name="description" content="Panel del Asistente Jurídico Inteligente Inti para la Facultad de Derecho de la Universidad Nacional de San Agustín.">
+  
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+  <!-- Barra de Navegación Superior -->
+  <header class="app-navbar" role="banner">
+    <div class="navbar-container">
+      
+      <div class="brand-section">
+        <div class="brand-logo-badge" data-icon="scale" aria-hidden="true"></div>
+        <div class="brand-details">
+          <span class="brand-name">Inti Asistente Jurídico</span>
+          <span class="brand-affiliation">Facultad de Derecho — Universidad Nacional de San Agustín</span>
+        </div>
+      </div>
+
+      <div class="user-nav-actions">
+        <div class="user-identity-card" id="user-badge" title="Usuario autenticado en el dominio UNSA">
+          <div class="user-avatar-circle" data-icon="user" aria-hidden="true"></div>
+          <div class="user-info-text">
+            <span class="user-display-name" id="user-display-name">Cargando...</span>
+            <span class="user-role-badge" id="user-display-role">Estudiante</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn-logout" id="btn-logout" title="Cerrar sesión segura">
+          <span class="ui-icon-slot" data-icon="logout" aria-hidden="true"></span>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Contenido Principal -->
+  <main class="dashboard-main" role="main">
+    
+    <!-- Hero de Bienvenida y Estado de Sesión -->
+    <section class="welcome-hero" aria-labelledby="welcome-heading">
+      <div class="welcome-text">
+        <h2 id="welcome-heading">Bienvenido(a) al Asistente Jurídico, <span id="hero-user-name">Usuario</span></h2>
+        <p>Acceso autorizado al repositorio de legislación nacional, jurisprudencia y doctrina jurídica peruana.</p>
+      </div>
+      <div class="session-status-chip">
+        <span class="ui-icon-slot" data-icon="shieldCheck" aria-hidden="true"></span>
+        <span>Sesión Institucional Activa</span>
+      </div>
+    </section>
+
+    <!-- Grid de Trabajo y Asistencia -->
+    <div class="dashboard-grid">
+      
+      <!-- Card Principal: Consulta Jurídica RAG -->
+      <section class="dashboard-card" aria-labelledby="query-section-heading">
+        <div class="card-header">
+          <h3 class="card-title" id="query-section-heading">
+            <span class="ui-icon-slot" data-icon="sparkles" aria-hidden="true"></span>
+            <span>Consulta Jurídica Inteligente (RAG)</span>
+          </h3>
+          <span class="status-indicator">
+            <span class="status-dot"></span>
+            <span>Modelo M1 Activo</span>
+          </span>
+        </div>
+
+        <div class="query-box-container">
+          <label for="legal-query-input" class="info-label">Formule una consulta jurídica o requerimiento de análisis:</label>
+          <textarea 
+            id="legal-query-input" 
+            class="query-input" 
+            placeholder="Ejemplo: ¿Cuáles son las causales de nulidad del acto jurídico previstas en el Artículo 219 del Código Civil peruano y cuál es su diferencia con la anulabilidad?"></textarea>
+          
+          <div class="query-actions">
+            <span class="query-suggestions">Sugerencias: Código Civil, Constitución Política de 1993, Código Procesal Civil.</span>
+            <button type="button" class="btn-query" id="btn-submit-query">
+              <span class="ui-icon-slot" data-icon="sparkles" aria-hidden="true"></span>
+              <span>Consultar Asistente</span>
+            </button>
+          </div>
+
+          <div id="query-response-area" class="query-result-box" style="display: none;">
+            <div class="query-result-header">
+              <span class="ui-icon-slot" data-icon="fileText" aria-hidden="true"></span>
+              <span>Respuesta Generada por Inti (Base Normativa UNSA):</span>
+            </div>
+            <div id="query-response-text"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card Lateral: Resumen de Identidad y Sesión -->
+      <aside class="dashboard-card" aria-labelledby="session-section-heading">
+        <div class="card-header">
+          <h3 class="card-title" id="session-section-heading">
+            <span class="ui-icon-slot" data-icon="user" aria-hidden="true"></span>
+            <span>Credenciales Activas</span>
+          </h3>
+        </div>
+
+        <div class="session-info-list">
+          <div class="info-item">
+            <span class="info-label">Correo Institucional</span>
+            <span class="info-value" id="info-email">estudiante@unsa.edu.pe</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Rol Académico</span>
+            <span class="info-value" id="info-role">Estudiante de Pregrado</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Token de Acceso (JWT)</span>
+            <span class="token-preview" id="info-token">Cargando token...</span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Módulos en el Sprint</span>
+            <div style="font-size: 0.8125rem; color: var(--color-text-body); margin-top: 0.25rem;">
+              <div>• <strong>HU-05 (Autenticación):</strong> Operativo</div>
+              <div>• <strong>HU-01 (Ingesta Normativa):</strong> En preparación</div>
+              <div>• <strong>HU-02 (Búsqueda Vectorial):</strong> En preparación</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+
+  </main>
+
+  <!-- Módulos de Script -->
+  <script type="module">
+    import { AuthSession } from './js/auth-session.js';
+    import { Icons } from './js/icons.js';
+
+    // 1. Guardia de Ruta (Route Guard): Verificar autenticación
+    if (!AuthSession.isAuthenticated()) {
+      window.location.replace('index.html');
+    }
+
+    // 2. Renderizar iconos SVG
+    document.querySelectorAll('[data-icon]').forEach(el => {
+      const iconKey = el.getAttribute('data-icon');
+      if (Icons[iconKey]) {
+        el.innerHTML = Icons[iconKey];
+      }
+    });
+
+    // 3. Cargar datos del usuario
+    const user = AuthSession.getUser();
+    const token = AuthSession.getToken();
+
+    if (user) {
+      const displayName = user.full_name || user.email.split('@')[0];
+      const roleText = formatRole(user.role);
+
+      document.getElementById('user-display-name').textContent = displayName;
+      document.getElementById('user-display-role').textContent = roleText;
+      document.getElementById('hero-user-name').textContent = displayName;
+      document.getElementById('info-email').textContent = user.email;
+      document.getElementById('info-role').textContent = roleText;
+      
+      if (token) {
+        document.getElementById('info-token').textContent = `${token.substring(0, 24)}... (Válido)`;
+      }
+    }
+
+    function formatRole(role) {
+      switch (role) {
+        case 'student': return 'Estudiante de Pregrado (Derecho)';
+        case 'docent': return 'Docente / Catedrático';
+        case 'researcher': return 'Investigador / Egresado';
+        default: return 'Miembro Institucional UNSA';
+      }
+    }
+
+    // 4. Manejador de Cierre de Sesión (Logout)
+    document.getElementById('btn-logout')?.addEventListener('click', () => {
+      AuthSession.clearSession();
+      window.location.replace('index.html');
+    });
+
+    // 5. Demostración interactiva de consulta jurídica
+    const btnSubmitQuery = document.getElementById('btn-submit-query');
+    const queryInput = document.getElementById('legal-query-input');
+    const responseArea = document.getElementById('query-response-area');
+    const responseText = document.getElementById('query-response-text');
+
+    btnSubmitQuery?.addEventListener('click', () => {
+      const q = queryInput.value.trim();
+      if (!q) {
+        queryInput.focus();
+        return;
+      }
+
+      btnSubmitQuery.disabled = true;
+      btnSubmitQuery.innerHTML = `${Icons.spinner} <span>Analizando corpus normativo...</span>`;
+
+      setTimeout(() => {
+        btnSubmitQuery.disabled = false;
+        btnSubmitQuery.innerHTML = `<span class="ui-icon-slot">${Icons.sparkles}</span> <span>Consultar Asistente</span>`;
+        
+        responseArea.style.display = 'block';
+        responseText.innerHTML = `
+          <p><strong>Fundamento Normativo (Código Civil Peruano de 1984):</strong></p>
+          <p style="margin-top: 0.5rem;">Conforme al Artículo 219 del Código Civil, el acto jurídico es nulo cuando falta la manifestación de voluntad del agente, se haya practicado por persona absolutamente incapaz, su objeto sea física o jurídicamente imposible o indeterminable, o su fin sea ilícito.</p>
+          <p style="margin-top: 0.5rem; font-size: 0.8125rem; color: var(--color-text-muted);"><em>Consulta procesada con autenticación institucional de ${user?.email || 'usuario institucional'}.</em></p>
+        `;
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
