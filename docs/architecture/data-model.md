@@ -51,6 +51,7 @@ erDiagram
         string raw_content "Official article text extracted from SPIJ"
         string official_spij_url "Permanent official URL link to SPIJ portal"
         vector embedding "1536-dimensional dense vector"
+        tsvector tsv_content "Spanish full-text search vector"
         timestamp ingested_at
     }
 
@@ -120,8 +121,8 @@ CREATE TABLE public.query_logs (
 CREATE INDEX idx_query_logs_session_id ON public.query_logs(session_id);
 ```
 
-### 2.5. Table `legal_chunks` (Statutory Chunks and Vectors)
-Contains Civil Code articles chunked hierarchically with corresponding 1536-dimensional dense embeddings.
+### 2.5. Table `legal_chunks` (Statutory Chunks, Vectors and Lexical Inverted Index)
+Contains Civil Code articles chunked hierarchically with corresponding 1536-dimensional dense embeddings and generated `tsvector` columns for hybrid search.
 ```sql
 CREATE TABLE public.legal_chunks (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -131,6 +132,9 @@ CREATE TABLE public.legal_chunks (
     raw_content TEXT NOT NULL,
     official_spij_url TEXT NOT NULL,
     embedding VECTOR(1536) NOT NULL,
+    tsv_content TSVECTOR GENERATED ALWAYS AS (
+        to_tsvector('spanish', coalesce(statutory_hierarchy, '') || ' ' || coalesce(raw_content, ''))
+    ) STORED,
     ingested_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_statute_article UNIQUE (statute_code, article_number)
 );
@@ -139,6 +143,10 @@ CREATE TABLE public.legal_chunks (
 CREATE INDEX idx_legal_chunks_embedding ON public.legal_chunks 
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);
+
+-- GIN index for Spanish full-text search (BM25-style lexical search)
+CREATE INDEX idx_legal_chunks_tsv ON public.legal_chunks 
+USING gin (tsv_content);
 
 CREATE INDEX idx_legal_chunks_article ON public.legal_chunks(statute_code, article_number);
 ```
@@ -196,9 +204,76 @@ CREATE POLICY legal_chunks_read_policy ON public.legal_chunks
 
 ---
 
-## 4. Semantic Vector Search Function
+## 4. Retrieval Functions (Vector and Hybrid Search)
 
-Invoked via RPC from the FastAPI backend to execute nearest neighbor retrieval filtered by similarity threshold:
+### 4.1. Hybrid Search Function via Reciprocal Rank Fusion (RRF)
+
+Primary retrieval function combining dense semantic embeddings (`pgvector`) and sparse lexical search (`tsvector`) via Reciprocal Rank Fusion (RRF). This addresses the critical legal domain requirement of accurately resolving specific article numbers and exact legal terminology while retaining semantic recall for conceptual queries.
+
+```sql
+CREATE OR REPLACE FUNCTION match_legal_chunks_hybrid(
+    query_text TEXT,
+    query_embedding VECTOR(1536),
+    match_count INT DEFAULT 5,
+    full_text_weight FLOAT DEFAULT 1.0,
+    vector_weight FLOAT DEFAULT 1.0,
+    rrf_k INT DEFAULT 60
+)
+RETURNS TABLE (
+    id UUID,
+    statute_code VARCHAR,
+    statutory_hierarchy VARCHAR,
+    article_number INT,
+    raw_content TEXT,
+    official_spij_url TEXT,
+    semantic_similarity FLOAT,
+    combined_score FLOAT
+)
+LANGUAGE sql
+AS $$
+WITH vector_search AS (
+    SELECT 
+        lc.id,
+        1 - (lc.embedding <=> query_embedding) AS sim,
+        ROW_NUMBER() OVER (ORDER BY lc.embedding <=> query_embedding) AS rank
+    FROM public.legal_chunks lc
+    ORDER BY lc.embedding <=> query_embedding
+    LIMIT match_count * 3
+),
+text_search AS (
+    SELECT 
+        lc.id,
+        ts_rank_cd(lc.tsv_content, plainto_tsquery('spanish', query_text)) AS rank_score,
+        ROW_NUMBER() OVER (ORDER BY ts_rank_cd(lc.tsv_content, plainto_tsquery('spanish', query_text)) DESC) AS rank
+    FROM public.legal_chunks lc
+    WHERE lc.tsv_content @@ plainto_tsquery('spanish', query_text)
+    ORDER BY rank_score DESC
+    LIMIT match_count * 3
+)
+SELECT
+    lc.id,
+    lc.statute_code,
+    lc.statutory_hierarchy,
+    lc.article_number,
+    lc.raw_content,
+    lc.official_spij_url,
+    coalesce(vs.sim, 0.0)::FLOAT AS semantic_similarity,
+    (
+        coalesce(1.0 / (rrf_k + vs.rank), 0.0) * vector_weight +
+        coalesce(1.0 / (rrf_k + ts.rank), 0.0) * full_text_weight
+    )::FLOAT AS combined_score
+FROM public.legal_chunks lc
+LEFT JOIN vector_search vs ON lc.id = vs.id
+LEFT JOIN text_search ts ON lc.id = ts.id
+WHERE vs.id IS NOT NULL OR ts.id IS NOT NULL
+ORDER BY combined_score DESC
+LIMIT match_count;
+$$;
+```
+
+### 4.2. Pure Semantic Vector Search Function (Fallback)
+
+Invoked via RPC from the FastAPI backend when full-text query tokens are empty or for pure conceptual similarity evaluation:
 
 ```sql
 CREATE OR REPLACE FUNCTION match_legal_chunks(

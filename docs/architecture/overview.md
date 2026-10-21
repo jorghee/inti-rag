@@ -40,12 +40,12 @@ flowchart TD
 
     subgraph Tier3["3. Persistence Tier (Supabase)"]
         PostgresRelational[("PostgreSQL 15+\n(Profiles, Sessions, Query Logs)")]
-        VectorStore[("pgvector Extension\n(1536d Chunk Embeddings)")]
+        VectorStore[("pgvector & tsvector Inverted Index\n(1536d Embeddings + Spanish Full-Text)")]
         RLSPolicies["Row Level Security Policies (RLS)"]
     end
 
     subgraph Tier4["4. External & Ingestion Tier"]
-        SPIJScraper["SPIJ Ingestion Pipeline\n(Async Scraping + Backoff)"]
+        SPIJScraper["SPIJ Ingestion Pipeline\n(Raw Snapshot Staging + Backoff)"]
         HierarchicalParser["Hierarchical Parser\n(Book > Title > Chapter > Article)"]
         EmbeddingService["Embedding Service\n(OpenAI text-embedding-3-small)"]
         GroqInference["Primary Fast Inference\n(Groq Cloud API - Llama 3.3 70B)"]
@@ -55,7 +55,7 @@ flowchart TD
     WebUI <-->|HTTPS / REST| AuthRouter
     SSEConsumer <-->|HTTPS / Streaming SSE| QueryRouter
     AuthRouter <--> PostgresRelational
-    RAGOrchestrator <-->|"Cosine Search (<=>)"| VectorStore
+    RAGOrchestrator <-->|"Hybrid Search (RRF <=> / @@)"| VectorStore
     RAGOrchestrator -->|Primary Inference| GroqInference
     GroqInference -.->|Failover on Rate Limit| OpenRouterFallback
     SPIJScraper --> HierarchicalParser --> EmbeddingService --> VectorStore
@@ -74,12 +74,12 @@ flowchart TD
 ### 3.2. Application Tier (FastAPI Backend)
 - **FastAPI 0.110+**: Provides strict request/response data validation via Pydantic v2 schemas.
 - **Security Middleware**: Verifies Supabase GoTrue JWT signatures and rejects accounts that do not belong to the `@unsa.edu.pe` institutional domain ([`decisions.md#adr-004`](decisions.md#adr-004-unsa-institutional-email-validation-strategy-unsaedupe)).
-- **RAG Orchestrator**: Coordinates LlamaIndex to query nearest vector neighbors via cosine similarity.
+- **RAG Orchestrator**: Coordinates LlamaIndex with PostgreSQL to execute hybrid retrieval combining dense vectors (`<=>`) and Spanish lexical search (`tsvector`) via Reciprocal Rank Fusion (RRF).
 - **Grounding Engine**: Enforces anti-hallucination rules, validating that all synthesized claims are grounded in retrieved statutory chunks before presentation.
 
 ### 3.3. Persistence Tier (Supabase PostgreSQL + pgvector)
 - Unified relational and vector database combining transactional records (user accounts, session history) and embeddings in a single cluster ([`decisions.md#adr-001`](decisions.md#adr-001-unified-relational-and-vector-storage-with-supabase-postgresql--pgvector)).
-- `legal_chunks` table stores 1536-dimensional embeddings indexed with HNSW for sub-500ms cosine distance (`<=>`) queries.
+- `legal_chunks` table stores 1536-dimensional embeddings indexed with HNSW for sub-500ms cosine distance (`<=>`) queries and GIN full-text index for Spanish lexical search.
 - Strict isolation of student conversation histories enforced through Row Level Security (RLS) policies.
 
 ### 3.4. Ingestion & Inference Tier (External Tier)
@@ -107,10 +107,10 @@ sequenceDiagram
     API->>API: Validate institutional JWT token (@unsa.edu.pe)
     API->>Llama: Dispatch query with session context
     activate Llama
-    Llama->>DB: Vector search (SELECT chunks WHERE cosine_sim >= 0.75 LIMIT 5)
+    Llama->>DB: Hybrid search (Vector cosine <=> + Lexical tsvector with RRF)
     DB-->>Llama: Return statutory chunks (Article, Book, SPIJ URL)
     
-    alt No chunks exceed 0.75 similarity threshold
+    alt Combined score below minimum relevance threshold
         Llama-->>API: Out-of-scope notification
         API-->>Web: Controlled refusal - "Query is not grounded in indexed corpus"
     else Relevant chunks retrieved

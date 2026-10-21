@@ -49,7 +49,7 @@
      - `title`: e.g., "Título IX - Responsabilidad Extracontractual"
      - `article`: e.g., "Artículo 1969"
      - `source_url`: Permanent SPIJ direct URL
-  3. *Prompt Injection:* When retrieved, the chunk header injected into the LLM context contains the full hierarchy, enabling precise statutory interpretation.
+  3. *Prompt Context Augmentation:* When retrieved, the chunk header injected into the LLM context contains the full hierarchy, enabling precise statutory interpretation.
 * **Consequences:**
   * *Positive:* Zero fragmentation of legal articles; citations precisely reference the exact article and book.
   * *Negative:* Scraper parsing logic is more complex than generic markdown chunking and requires handling irregular sub-clauses (*numerales* and *literales*).

@@ -58,8 +58,17 @@ EMBEDDING_DIMENSION=1536
 # ==============================================================================
 # RAG ENGINE RETRIEVAL PARAMETERS
 # ==============================================================================
-# Minimum cosine similarity threshold required to answer a query
-RAG_SIMILARITY_THRESHOLD=0.75
+# RAG ENGINE RETRIEVAL PARAMETERS (HYBRID SEARCH)
+# ==============================================================================
+# Minimum cosine similarity threshold for standalone vector filtering
+RAG_SIMILARITY_THRESHOLD=0.70
+
+# Reciprocal Rank Fusion (RRF) smoothing parameter (default: 60)
+RAG_RRF_K=60
+
+# Hybrid weights: vector dense search vs full-text lexical search
+RAG_VECTOR_WEIGHT=1.0
+RAG_FULLTEXT_WEIGHT=1.0
 
 # Maximum number of statutory chunks injected into the prompt context
 RAG_TOP_K=5
@@ -79,7 +88,9 @@ RAG_TEMPERATURE=0.1
 | `SUPABASE_ANON_KEY` | String | Yes | Public client key used for API requests governed by Row Level Security (RLS). |
 | `SUPABASE_JWT_SECRET` | String | Yes | Cryptographic secret used by FastAPI middleware to decode and verify JWT signatures. |
 | `GROQ_API_KEY` | String | Yes | API authentication key for primary inference on Groq Cloud. |
-| `RAG_SIMILARITY_THRESHOLD` | Float | Yes | Cosine similarity cutoff ($\ge 0.75$). Queries below this score trigger a refusal notice. |
+| `RAG_SIMILARITY_THRESHOLD` | Float | Yes | Semantic similarity cutoff ($\ge 0.70$). Queries failing semantic and lexical checks trigger refusal. |
+| `RAG_RRF_K` | Integer | No | Reciprocal Rank Fusion constant ($k=60$) balancing dense and sparse rankings. |
+| `RAG_TOP_K` | Integer | Yes | Maximum statutory chunks injected into prompt context ($5$). |
 | `RAG_TEMPERATURE` | Float | Yes | LLM sampling temperature. Set to $0.1$ to enforce deterministic, grounded output. |
 
 ---

@@ -80,10 +80,22 @@ Hierarchy: Libro VII: Fuentes de las Obligaciones > Título I: Compraventa
 Article 1529: Por la compraventa el vendedor se obliga a transferir la propiedad de un bien al comprador y este a pagar su precio en dinero.
 ```
 
+### 3.1. Handling Long and Multi-Clause Articles (The "Mega-Article" Safeguard)
+While the vast majority of Civil Code articles contain under 150 words, certain complex articles (e.g., procedural grounds, corporate transitions, or lists of multiple *incisos*) exceed 600 words. Attempting to compress long statutory articles into a single 1536-dimensional vector causes **semantic dilution**, impairing cosine similarity retrieval:
+1. **Length Threshold:** Articles exceeding $500\text{ words}$ ($\approx 700\text{ tokens}$) are partitioned into structural sub-chunks divided by *inciso* or numeral.
+2. **Context Retention:** Each sub-chunk preserves the complete parent statutory hierarchy and the article introductory clause, ensuring statutory interpretation is never detached from its legislative root.
+3. **Citation Uniformity:** Both the primary article chunk and its sub-chunks maintain the same canonical citation URL and `article_number`, ensuring uniform presentation in the UI.
+
 ---
 
 ## 4. Scraping Strategy and Rate-Limit Safeguards
 
+### 4.1. Two-Stage Decoupled Ingestion Architecture
+To prevent network instability or SPIJ government portal maintenance from blocking development and parsing, ingestion is decoupled into two discrete phases:
+1. **Raw Snapshot Staging:** The scraper downloads raw statutory payloads into local immutable JSON/HTML snapshot archives (`data/raw/spij_cc_YYYYMMDD.json`).
+2. **Deterministic Processing:** The cleaning, hierarchical parsing, embedding, and database upsert operations execute entirely against the local snapshot archive.
+
+### 4.2. Network Resilience and Backoff
 - **Networking Library:** Asynchronous `httpx` with explicit 30-second timeouts.
 - **Mandatory Request Delay:** Minimum 1.5-second sleep interval between sequential HTTP calls.
 - **Exponential Backoff:** When receiving HTTP status codes 429 (Too Many Requests) or 503, the pipeline applies exponential backoff:
