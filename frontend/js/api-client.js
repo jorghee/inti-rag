@@ -16,9 +16,11 @@ export class ApiError extends Error {
   }
 }
 
-// Configuración base de la API
+// Configuración base de la API: usa el mismo origen cuando se sirve desde FastAPI
 const DEFAULT_CONFIG = {
-  baseUrl: window.__ENV__?.API_BASE_URL || 'http://localhost:8000',
+  baseUrl:
+    window.__ENV__?.API_BASE_URL ||
+    (window.location.protocol.startsWith('http') ? window.location.origin : 'http://localhost:8080'),
   forceMock: new URLSearchParams(window.location.search).get('mock') === 'true',
   mockDelayMs: 400
 };
@@ -36,14 +38,14 @@ function getMockUsers() {
   // Usuario inicial pre-sembrado para pruebas inmediatas
   return [
     {
-      id: 'usr-unsa-001',
+      id: '11111111-1111-4111-8111-111111111101',
       email: 'jariasq@unsa.edu.pe',
       full_name: 'Jhonatan David Arias Quispe',
       role: 'student',
       password: 'Password123*'
     },
     {
-      id: 'usr-unsa-002',
+      id: '11111111-1111-4111-8111-111111111102',
       email: 'docente@unsa.edu.pe',
       full_name: 'Dr. Jorge Huarsaya',
       role: 'docent',
@@ -287,5 +289,87 @@ export const ApiClient = {
     }
 
     throw new ApiError(401, 'Sesión no válida');
+  },
+
+  /**
+   * Lista el historial de sesiones de consulta del usuario autenticado (HU-06)
+   * Endpoint: GET /api/v1/sessions
+   */
+  async listSessions(token, limit = 50) {
+    const response = await fetch(`${this.config.baseUrl}/api/v1/sessions?limit=${limit}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new ApiError(response.status, data?.detail || 'No se pudo cargar el historial de sesiones');
+    }
+    return data || [];
+  },
+
+  /**
+   * Obtiene el detalle cronológico de una sesión y sus citas (HU-06)
+   * Endpoint: GET /api/v1/sessions/{sessionId}
+   */
+  async getSession(token, sessionId) {
+    const response = await fetch(`${this.config.baseUrl}/api/v1/sessions/${encodeURIComponent(sessionId)}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      }
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new ApiError(response.status, data?.detail || 'No se pudo cargar la sesión solicitada');
+    }
+    return data;
+  },
+
+  /**
+   * Crea una nueva sesión de consulta (HU-06)
+   * Endpoint: POST /api/v1/sessions
+   */
+  async createSession(token, sessionTitle = 'Nueva consulta jurídica') {
+    const response = await fetch(`${this.config.baseUrl}/api/v1/sessions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ session_title: sessionTitle })
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new ApiError(response.status, data?.detail || 'No se pudo crear la sesión');
+    }
+    return data;
+  },
+
+  /**
+   * Ejecuta una consulta jurídica híbrida contra el motor RAG y guarda el turno en el historial
+   * Endpoint: POST /api/v1/queries
+   */
+  async executeQuery(token, { query, sessionId = null, topK = 5 }) {
+    const response = await fetch(`${this.config.baseUrl}/api/v1/queries`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        query,
+        session_id: sessionId,
+        top_k: topK
+      })
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new ApiError(response.status, data?.detail || 'No se pudo procesar la consulta jurídica');
+    }
+    return data;
   }
 };
