@@ -60,17 +60,17 @@ class AuthService:
         self._seed_default_users()
 
     def _seed_default_users(self) -> None:
-        """Seed default institutional users for local development and testing."""
+        """Seed institutional dev users with RFC-4122 UUIDs compatible with Supabase profiles."""
         seed_users = [
             (
-                "usr-unsa-001",
+                "11111111-1111-4111-8111-111111111101",
                 "jariasq@unsa.edu.pe",
                 "Jhonatan David Arias Quispe",
                 "student",
                 "Password123*",
             ),
             (
-                "usr-unsa-002",
+                "11111111-1111-4111-8111-111111111102",
                 "docente@unsa.edu.pe",
                 "Dr. Jorge Huarsaya",
                 "docent",
@@ -116,7 +116,7 @@ class AuthService:
                     detail="El correo institucional ya se encuentra registrado en el sistema.",
                 )
 
-            user_id = f"usr-{uuid.uuid4()}"
+            user_id = str(uuid.uuid4())
             hashed_pw = get_password_hash(payload.password)
             new_record = UserRecord(
                 user_id=user_id,

@@ -2,11 +2,12 @@
 
 from fastapi import APIRouter
 
-from backend.api.v1.endpoints import auth
+from backend.api.v1.endpoints import auth, sessions
 
 api_router = APIRouter()
 
 api_router.include_router(auth.router)
+api_router.include_router(sessions.router)
 
 
 @api_router.get("/health", tags=["System"])

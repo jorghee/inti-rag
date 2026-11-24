@@ -41,6 +41,9 @@ DEFAULT_NORM_NAME: Final[str] = "Código Civil de 1984"
 # Base URL template for SPIJ article deep links
 SPIJ_BASE_URL: Final[str] = "https://spij.minjus.gob.pe/spij-ext-web/#/detallenorma/H682695"
 
+# Marker identifying synthetic placeholder articles in offline mirror fixtures
+_SYNTHETIC_TEMPLATE_MARKER: Final[str] = "Disposicion legal y normativa correspondiente al articulo"
+
 # ---------------------------------------------------------------------------
 # Structural boundary regexes
 # ---------------------------------------------------------------------------
@@ -496,6 +499,7 @@ def _flush_article(
 
     article_number = _extract_article_number(article_num_raw)
     word_count = len(body.split())
+    is_synthetic = _SYNTHETIC_TEMPLATE_MARKER in body
 
     # Check for mega-article
     if word_count > MEGA_ARTICLE_WORD_THRESHOLD:
@@ -522,7 +526,11 @@ def _flush_article(
                         composite_text=composite,
                         sub_chunk_index=idx,
                         total_words=sub_words,
-                        metadata={"has_modifications": False, "last_amendment": None},
+                        metadata={
+                            "has_modifications": False,
+                            "last_amendment": None,
+                            "is_synthetic_template": is_synthetic,
+                        },
                     )
                 )
             return
@@ -540,6 +548,10 @@ def _flush_article(
             composite_text=composite,
             sub_chunk_index=0,
             total_words=word_count,
-            metadata={"has_modifications": False, "last_amendment": None},
+            metadata={
+                "has_modifications": False,
+                "last_amendment": None,
+                "is_synthetic_template": is_synthetic,
+            },
         )
     )
