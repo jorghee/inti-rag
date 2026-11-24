@@ -46,6 +46,7 @@ async def run_statutory_ingestion(
     allow_network: bool = False,
     store: Optional[LegalChunksVectorStore] = None,
     log_output_path: Optional[Path] = None,
+    use_remote: bool = False,
 ) -> IngestionPipelineSummary:
     """Execute end-to-end statutory ingestion pipeline:
 
@@ -59,7 +60,9 @@ async def run_statutory_ingestion(
     t0 = time.monotonic()
     logger.info("Starting statutory ingestion pipeline for CODIGO_CIVIL_1984...")
 
-    target_store = store or vector_store
+    target_store = store or (
+        LegalChunksVectorStore(use_remote=use_remote) if use_remote else vector_store
+    )
     target_log = log_output_path or DEFAULT_LOG_PATH
 
     # Step 1: Extraction / Download
@@ -136,6 +139,11 @@ def main() -> None:
         help="Attempt live SPIJ download before falling back to mirror fixture.",
     )
     parser.add_argument(
+        "--remote",
+        action="store_true",
+        help="Upload embeddings and chunks to remote Supabase Cloud pgvector store.",
+    )
+    parser.add_argument(
         "--log",
         type=Path,
         default=DEFAULT_LOG_PATH,
@@ -149,6 +157,7 @@ def main() -> None:
             force_mirror=not args.live,
             allow_network=args.live,
             log_output_path=args.log,
+            use_remote=args.remote,
         )
     )
 
