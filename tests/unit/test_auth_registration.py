@@ -242,10 +242,12 @@ class TestAuthServiceRegistrationAndDuplicates:
         )
         profile = fresh_service.register_user(payload)
 
+        import uuid
+
         assert profile.email == "nuevo.alumno@unsa.edu.pe"
         assert profile.full_name == "Nuevo Alumno UNSA"
         assert profile.role == "student"
-        assert profile.id.startswith("usr-")
+        assert uuid.UUID(profile.id)
 
         # Verify retrievable by email and id
         by_id = fresh_service.get_user_by_id(profile.id)
